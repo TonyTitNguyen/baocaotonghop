@@ -786,14 +786,29 @@ PHỤC LINH,HẢI PHÒNG,2026-02-28,39485625
         `;
 
         const comments_M2 = `
-`;
+            <p><strong>1. Hiệu quả Marketing T2</strong><br>
+            <span class="font-bold">• Tăng trưởng Khách đến:</span> Thương hiệu <strong>Phục Linh</strong> ghi nhận tỷ lệ chuyển đổi từ SĐT sang Khách đến đạt mức cao (~83%), tăng trưởng tốt so với T1.<br>
+            <span class="font-bold">• Chi phí Ads:</span> <strong>Long Biên</strong> tiếp tục giữ vững phong độ với CIR ổn định nhất hệ thống. Ngược lại, <strong>ADV</strong> đang chịu áp lực CIR lớn, cần tối ưu lại chất lượng lead.</p>
+            <p><strong>2. Đề xuất hành động</strong><br>
+            <span class="font-bold text-zen-tea">▶️</span> Tập trung đẩy mạnh Upsell tại các cơ sở Phục Linh để tối đa hóa doanh thu từ lượng khách đã chốt thành công.</p>
+        `;
 
         // --- 6. MARKETING DATA ---
-        const csvMarketing = `
+        const csvMarketing_M1 = `
 Phục Linh,3629,197,131
 An Nguyên,200,65,30
 An Nhiên ADV,336,31,30
 An Nhiên CMT8,357,24,28
+`;
+
+        const csvMarketing_M2 = `
+Phục Linh,Xã Đàn,1131,68,58,0.39,0.25
+Phục Linh,Cầu Giấy,951,45,39,0.34,0.21
+Phục Linh,Hà Đông,958,38,34,0.36,0.17
+Phục Linh,Hải Phòng,589,46,34,0.33,0.27
+An Nguyên,Long Biên,200,65,30,"33,68%",0.4615384615
+An Nhiên,ADV,336,31,30,0.33,0.36
+An Nhiên,CMT8,357,24,28,0.3,0.27
 `;
 
         // --- GLOBAL STATE ---
@@ -847,24 +862,68 @@ An Nhiên CMT8,357,24,28
         }
 
         // --- PARSERS ---
+        function parseCSVLine(str) {
+            const result = [];
+            let inQuotes = false;
+            let current = "";
+            for (let i = 0; i < str.length; i++) {
+                if (str[i] === '"') {
+                    inQuotes = !inQuotes;
+                } else if (str[i] === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = "";
+                } else {
+                    current += str[i];
+                }
+            }
+            result.push(current.trim());
+            return result;
+        }
+
         function parseCSV(raw, type) {
             const lines = raw.trim().split('\n');
             const data = [];
             lines.forEach(line => {
-                const cols = line.split(',');
-                if(cols.length < 3) return;
-                
                 if (type === 'marketing') {
-                     const name = cols[0].trim();
-                    if(name && name !== 'Cơ sở') {
-                         data.push({
+                    const cols = parseCSVLine(line);
+                    if(cols.length < 2 || cols[0] === 'Cơ sở') return;
+                    
+                    if (cols.length >= 7) {
+                        const brand = cols[0];
+                        const branch = cols[1];
+                        let name = brand === 'Phục Linh' ? `Phục Linh ${branch}` : (brand === 'An Nguyên' ? 'An Nguyên' : `${brand} ${branch}`);
+                        
+                        // Lấy tỷ lệ nhập tay, bỏ dấu phẩy và % nếu có
+                        let r1 = cols[5].replace(/['"]/g, '').replace(',', '.');
+                        let r2 = cols[6].replace(/['"]/g, '').replace(',', '.');
+                        
+                        let rate1 = r1.includes('%') ? r1 : (parseFloat(r1) * 100).toFixed(1) + '%';
+                        let rate2 = r2.includes('%') ? r2 : (parseFloat(r2) * 100).toFixed(1) + '%';
+
+                        data.push({
                             name: name,
-                            leads: parseInt(cols[1]) || 0,
-                            phones: parseInt(cols[2]) || 0,
-                            arrived: parseInt(cols[3]) || 0
+                            leads: parseInt(cols[2]) || 0,
+                            phones: parseInt(cols[3]) || 0,
+                            arrived: parseInt(cols[4]) || 0,
+                            rate1: rate1,
+                            rate2: rate2
                         });
+                    } else if (cols.length >= 4) {
+                        // Tương thích ngược với dữ liệu Tháng 1 (M1) không đổi
+                        const name = cols[0];
+                        const leads = parseInt(cols[1]) || 0;
+                        const phones = parseInt(cols[2]) || 0;
+                        const arrived = parseInt(cols[3]) || 0;
+                        
+                        let rate1 = (leads > 0 ? (phones / leads * 100).toFixed(1) : 0) + '%';
+                        let rate2 = (phones > 0 ? (arrived / phones * 100).toFixed(1) : 0) + '%';
+                        
+                        data.push({ name, leads, phones, arrived, rate1, rate2 });
                     }
                 } else {
+                    const cols = line.split(',');
+                    if(cols.length < 3) return;
+                    
                     const brand = cols[0].trim();
                     const branch = cols[1].trim();
                     const dateStr = cols[2].trim();
@@ -905,16 +964,19 @@ An Nhiên CMT8,357,24,28
                 parsedDailyData = parseCSV(csvRaw_M1, 'rev');
                 parsedAdsData = parseCSV(csvAdsRaw_M1, 'ads');
                 currentSummaryData = summaryData_M1;
+                parsedMarketingData = parseCSV(csvMarketing_M1, 'marketing');
                 document.getElementById('consultant-content').innerHTML = comments_M1;
             } else if (m === 2) {
                 parsedDailyData = parseCSV(csvRaw_M2, 'rev');
                 parsedAdsData = parseCSV(csvAdsRaw_M2, 'ads');
                 currentSummaryData = summaryData_M2;
+                parsedMarketingData = parseCSV(csvMarketing_M2, 'marketing');
                 document.getElementById('consultant-content').innerHTML = comments_M2;
             } else {
                 parsedDailyData = [];
                 parsedAdsData = [];
                 currentSummaryData = [];
+                parsedMarketingData = [];
                 document.getElementById('consultant-content').innerHTML = "<p>Chưa có dữ liệu.</p>";
             }
             
@@ -1009,15 +1071,12 @@ An Nhiên CMT8,357,24,28
             let funnelData = parsedMarketingData; 
             
             if (currentBrand !== 'all') {
-                if (currentBrand === 'PHỤC LINH') funnelData = funnelData.filter(d => d.name === 'Phục Linh');
-                else if (currentBrand === 'AN NGUYÊN') funnelData = funnelData.filter(d => d.name === 'An Nguyên');
+                if (currentBrand === 'PHỤC LINH') funnelData = funnelData.filter(d => d.name.includes('Phục Linh'));
+                else if (currentBrand === 'AN NGUYÊN') funnelData = funnelData.filter(d => d.name.includes('An Nguyên'));
                 else if (currentBrand === 'AN NHIÊN') funnelData = funnelData.filter(d => d.name.includes('An Nhiên'));
             }
 
             funnelData.forEach((item, index) => {
-                const rateLeadToPhone = item.leads > 0 ? (item.phones / item.leads * 100).toFixed(1) : 0;
-                const ratePhoneToArrive = item.phones > 0 ? (item.arrived / item.phones * 100).toFixed(1) : 0;
-                
                 const div = document.createElement('div');
                 div.className = "bg-zen-card p-5 rounded-xl border border-zen-gray shadow-sm reveal-on-scroll";
                 div.style.transitionDelay = `${index * 100}ms`;
@@ -1026,14 +1085,14 @@ An Nhiên CMT8,357,24,28
                     <div class="h-48 relative">
                          <canvas id="funnel-${index}"></canvas>
                     </div>
-                    <div class="mt-4 grid grid-cols-2 gap-2 text-center text-[10px]">
-                        <div>
-                            <div class="font-bold text-gray-500">Tỷ lệ xin số</div>
-                            <div class="text-zen-tea font-bold text-xs">${rateLeadToPhone}%</div>
+                    <div class="mt-4 grid grid-cols-2 gap-3 text-center">
+                        <div class="bg-zen-tea/10 p-2.5 rounded-lg border border-zen-tea/20 shadow-sm">
+                            <div class="font-bold text-zen-dark text-xs uppercase tracking-wide mb-1">Tỷ lệ xin số</div>
+                            <div class="text-zen-tea font-extrabold text-xl">${item.rate1}</div>
                         </div>
-                         <div>
-                            <div class="font-bold text-gray-500">Tỷ lệ telesale</div>
-                            <div class="text-blue-500 font-bold text-xs">${ratePhoneToArrive}%</div>
+                         <div class="bg-blue-50 p-2.5 rounded-lg border border-blue-100 shadow-sm">
+                            <div class="font-bold text-zen-dark text-xs uppercase tracking-wide mb-1">Tỷ lệ telesale</div>
+                            <div class="text-blue-600 font-extrabold text-xl">${item.rate2}</div>
                         </div>
                     </div>
                 `;
@@ -1108,8 +1167,10 @@ An Nhiên CMT8,357,24,28
             sorted.forEach((item, idx) => {
                 const percent = item.target > 0 ? (item.revenue / item.target) * 100 : 0;
                 
-                // Breakeven logic
-                const bePercent = item.target > 0 ? (item.breakeven / item.target) * 100 : 0;
+                // Breakeven logic (Tự động co giãn biểu đồ để vạch hòa vốn luôn hiển thị)
+                const maxScale = Math.max(item.target, item.breakeven, item.revenue);
+                const visualRevPercent = maxScale > 0 ? (item.revenue / maxScale) * 100 : 0;
+                const visualBePercent = maxScale > 0 ? (item.breakeven / maxScale) * 100 : 0;
                 const isProfitable = item.revenue >= item.breakeven;
                 
                 const isTop1 = idx === 0;
@@ -1128,25 +1189,25 @@ An Nhiên CMT8,357,24,28
                             <span class="text-[10px] font-bold ${brandColor} ${brandBg} px-2 py-1 rounded-md uppercase tracking-wide">${item.brand}</span>
                         </div>
                         <div class="flex flex-col gap-1 mb-2">
-                             <div class="flex justify-between items-baseline"><span class="text-gray-400 text-xs">Doanh thu</span><span class="text-xl font-bold text-zen-dark">${new Intl.NumberFormat('vi-VN').format(item.revenue)}</span></div>
-                             ${item.target > 0 ? `<div class="flex justify-between items-baseline"><span class="text-gray-400 text-xs">Target</span><span class="text-xs font-bold text-gray-500">${new Intl.NumberFormat('vi-VN').format(item.target)}</span></div>` : ''}
+                             <div class="flex justify-between items-baseline"><span class="text-gray-500 text-sm font-bold uppercase tracking-wide">Doanh thu</span><span class="text-2xl font-extrabold text-zen-dark">${new Intl.NumberFormat('vi-VN').format(item.revenue)}</span></div>
+                             ${item.target > 0 ? `<div class="flex justify-between items-baseline"><span class="text-gray-400 text-xs font-bold uppercase tracking-wide">Target</span><span class="text-sm font-bold text-gray-500">${new Intl.NumberFormat('vi-VN').format(item.target)}</span></div>` : ''}
                         </div>
                     </div>
                     ${item.target > 0 ? `
-                    <div class="mt-2 pt-2 border-t border-gray-100">
-                        <div class="progress-bar-bg mb-2 bg-gray-200">
-                            <div class="breakeven-marker" style="left: ${Math.min(bePercent, 100)}%;"></div>
-                            <div class="breakeven-label" style="left: ${Math.min(bePercent, 100)}%;">DT hòa vốn</div>
-                            <div class="progress-bar-fill h-1.5 rounded-full ${isProfitable ? 'bg-green-500' : 'bg-red-400'}" style="width: 0%" data-width="${Math.min(percent, 100)}"></div>
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <div class="progress-bar-bg mb-4 bg-gray-200 !h-2.5 rounded-full relative">
+                            <div class="breakeven-marker !w-1 bg-zen-dark absolute top-0 bottom-0 z-10" style="left: ${Math.min(visualBePercent, 99.5)}%;"></div>
+                            <div class="breakeven-label" style="left: ${Math.min(visualBePercent, 99.5)}%;">DT hòa vốn</div>
+                            <div class="progress-bar-fill !h-full rounded-full ${isProfitable ? 'bg-green-500' : 'bg-red-400'}" style="width: 0%" data-width="${Math.min(visualRevPercent, 100)}"></div>
                         </div>
                         
-                        <div class="flex justify-between items-center text-xs">
-                            <span class="${percent >= 100 ? 'text-green-600' : 'text-gray-500'} font-bold">Đạt ${percent.toFixed(1)}%</span>
-                            <div class="flex items-center text-gray-500"><i data-lucide="users" class="w-3 h-3 mr-1"></i> ${item.customers}</div>
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="${percent >= 100 ? 'text-green-600' : 'text-red-500'} font-extrabold text-base">Đạt ${percent.toFixed(1)}% KPI</span>
+                            <div class="flex items-center text-blue-600 font-extrabold text-sm bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100 shadow-sm"><i data-lucide="users" class="w-4 h-4 mr-1"></i> ${item.customers} KH</div>
                         </div>
-                        <div class="text-[10px] text-gray-400 mt-1 flex justify-between">
-                             <span>${isProfitable ? '✅ Đã có lãi' : '🔻 Chưa hòa vốn'}</span>
-                             <span>Mốc HV: ${formatShort(item.breakeven)}</span>
+                        <div class="text-sm flex justify-between items-center font-bold">
+                             <span class="${isProfitable ? 'text-green-700 bg-green-100 border border-green-200' : 'text-red-600 bg-red-50 border border-red-200'} px-2.5 py-1.5 rounded-md shadow-sm">${isProfitable ? '✅ Đã Có Lãi' : '🔻 Chưa Hòa Vốn'}</span>
+                             <span class="text-zen-dark bg-gray-100 px-2.5 py-1.5 rounded-md border border-gray-200 shadow-sm">Mốc HV: ${formatShort(item.breakeven)}</span>
                         </div>
                     </div>` : ''}
                 `;
@@ -1352,7 +1413,6 @@ An Nhiên CMT8,357,24,28
             initMonthSelector();
             parsedDailyData = parseCSV(csvRaw_M1, 'rev').concat(parseCSV(csvRaw_M2, 'rev'));
             parsedAdsData = parseCSV(csvAdsRaw_M1, 'ads').concat(parseCSV(csvAdsRaw_M2, 'ads'));
-            parsedMarketingData = parseCSV(csvMarketing, 'marketing');
             setMonth(2); 
         };
     </script>
