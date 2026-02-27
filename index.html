@@ -211,7 +211,7 @@
                             <p class="text-gray-500 text-xs font-bold uppercase tracking-wide">Tổng Lượng Khách</p>
                             <h3 class="text-2xl font-display font-bold mt-2 text-zen-dark" id="kpi-customers">0</h3>
                         </div>
-                        <div class="p-2 bg-blue-100 rounded-lg text-blue-600 ring-1 ring-blue-600/20">
+                        <div class="p-2 bg-emerald-100 rounded-lg text-emerald-600 ring-1 ring-emerald-600/20">
                             <i data-lucide="users" class="w-5 h-5"></i>
                         </div>
                     </div>
@@ -1099,9 +1099,9 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
                             <div class="font-bold text-zen-dark text-xs uppercase tracking-wide mb-1">Tỷ lệ xin số</div>
                             <div class="text-zen-tea font-extrabold text-xl">${item.rate1}</div>
                         </div>
-                         <div class="bg-blue-50 p-2.5 rounded-lg border border-blue-100 shadow-sm">
+                         <div class="bg-emerald-50 p-2.5 rounded-lg border border-emerald-200 shadow-sm">
                             <div class="font-bold text-zen-dark text-xs uppercase tracking-wide mb-1">Tỷ lệ telesale</div>
-                            <div class="text-blue-600 font-extrabold text-xl">${item.rate2}</div>
+                            <div class="text-emerald-600 font-extrabold text-xl">${item.rate2}</div>
                         </div>
                     </div>
                 `;
@@ -1116,14 +1116,14 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
                             label: 'Số lượng',
                             data: [item.leads, item.phones, item.arrived],
                             backgroundColor: [
-                                'rgba(203, 191, 163, 0.6)', 
-                                'rgba(67, 94, 1, 0.6)', 
-                                'rgba(59, 130, 246, 0.6)'   
+                                'rgba(143, 175, 159, 0.6)', /* Sage Green instead of Beige */
+                                'rgba(67, 94, 1, 0.6)',     /* Matcha */
+                                'rgba(5, 150, 105, 0.6)'    /* Emerald Green instead of Blue */
                             ],
                             borderColor: [
-                                '#CBBFA3',
-                                '#435E01',
-                                '#3b82f6'
+                                '#8FAF9F', /* Sage Green */
+                                '#435E01', /* Matcha */
+                                '#059669'  /* Emerald Green */
                             ],
                             borderWidth: 1,
                             barPercentage: 0.6
@@ -1174,9 +1174,11 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
                 const baseClasses = "bg-zen-card p-5 rounded-xl border flex flex-col justify-between reveal-on-scroll";
                 const borderClass = isTop1 ? "card-top-1 z-10" : "border-zen-gray card-hover shadow-sm";
                 card.className = `${baseClasses} ${borderClass}`; card.style.transitionDelay = `${idx * 150}ms`;
+                
+                // Changed Brand Colors to harmonized Green palette
                 let brandColor = 'text-zen-tea'; let brandBg = 'bg-zen-tea/20';
-                if(item.brand === 'AN NHIÊN') { brandColor = 'text-orange-600'; brandBg = 'bg-orange-100'; }
-                if(item.brand === 'PHỤC LINH') { brandColor = 'text-blue-600'; brandBg = 'bg-blue-100'; }
+                if(item.brand === 'AN NHIÊN') { brandColor = 'text-lime-700'; brandBg = 'bg-lime-100'; } // Was Orange
+                if(item.brand === 'PHỤC LINH') { brandColor = 'text-emerald-700'; brandBg = 'bg-emerald-100'; } // Was Blue
                 
                 card.innerHTML = `
                     <div>
@@ -1199,7 +1201,7 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
                         
                         <div class="flex justify-between items-center mb-3">
                             <span class="${percent >= 100 ? 'text-zen-tea' : 'text-red-500'} font-extrabold text-base">Đạt ${percent.toFixed(1)}% KPI</span>
-                            <div class="flex items-center text-blue-600 font-extrabold text-sm bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100 shadow-sm"><i data-lucide="users" class="w-4 h-4 mr-1"></i> ${item.customers} KH</div>
+                            <div class="flex items-center text-emerald-700 font-extrabold text-sm bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 shadow-sm"><i data-lucide="users" class="w-4 h-4 mr-1"></i> ${item.customers} KH</div>
                         </div>
                         <div class="text-sm flex justify-between items-center font-bold">
                              <span class="${isProfitable ? 'text-zen-tea bg-zen-tea/10 border border-zen-tea/20' : 'text-red-600 bg-red-50 border border-red-200'} px-2.5 py-1.5 rounded-md shadow-sm">${isProfitable ? '✅ Đã Có Lãi' : '🔻 Chưa Hòa Vốn'}</span>
@@ -1222,10 +1224,11 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
                 const tr = document.createElement('tr');
                 const cir = item.revenue > 0 ? (item.ads / item.revenue) * 100 : 0;
                 
+                // Changed Brand Colors to harmonized Green palette
                 let brandIcon = 'sprout';
                 let brandColor = 'text-zen-tea';
-                if(item.brand === 'AN NHIÊN') { brandIcon = 'sun'; brandColor = 'text-orange-500'; }
-                if(item.brand === 'PHỤC LINH') { brandIcon = 'heart-pulse'; brandColor = 'text-blue-500'; }
+                if(item.brand === 'AN NHIÊN') { brandIcon = 'sun'; brandColor = 'text-lime-600'; } // Was Orange
+                if(item.brand === 'PHỤC LINH') { brandIcon = 'heart-pulse'; brandColor = 'text-emerald-600'; } // Was Blue
 
                 let cirClass = 'text-zen-dark';
                 let cirBadge = '<span class="px-2 py-1 rounded bg-gray-100 text-gray-500 text-xs font-bold">Ổn định</span>';
@@ -1328,8 +1331,8 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
                             label: 'Lượng Khách',
                             data: custData,
                             type: 'bar',
-                            backgroundColor: 'rgba(59, 130, 246, 0.2)', 
-                            hoverBackgroundColor: 'rgba(59, 130, 246, 0.4)',
+                            backgroundColor: 'rgba(5, 150, 105, 0.2)', /* Emerald Green instead of Blue */
+                            hoverBackgroundColor: 'rgba(5, 150, 105, 0.4)',
                             borderRadius: 4,
                             yAxisID: 'y_cust',
                             order: 3,
