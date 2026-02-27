@@ -26,9 +26,9 @@
                         zen: {
                             bg: '#F7F5F2',
                             card: '#FAFAF8',
-                            sage: '#8FAF9F',
-                            tea: '#6B8F71',
-                            dark: '#3F3F3F',
+                            sage: '#628502', /* Lighter Matcha */
+                            tea: '#435E01',  /* Main Matcha */
+                            dark: '#2A3B00', /* Darkest Matcha for text */
                             wood: '#CBBFA3',
                             gray: '#E5E5E5',
                             red: '#DFA7A7',
@@ -49,7 +49,7 @@
         }
     </script>
     <style>
-        body { background-color: #F7F5F2; color: #3F3F3F; }
+        body { background-color: #F7F5F2; color: #2A3B00; }
         
         /* Utils */
         .hide-scroll::-webkit-scrollbar { display: none; }
@@ -66,10 +66,10 @@
             background-color: #FAFAF8; z-index: -1; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .sidebar-item:hover::before { width: 100%; }
-        .sidebar-item.active { color: #6B8F71; font-weight: 700; background-color: #FAFAF8; }
+        .sidebar-item.active { color: #435E01; font-weight: 700; background-color: #FAFAF8; }
         .sidebar-item.active::after {
             content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%);
-            width: 4px; height: 20px; background-color: #6B8F71;
+            width: 4px; height: 20px; background-color: #435E01;
             border-top-left-radius: 4px; border-bottom-left-radius: 4px;
         }
 
@@ -86,7 +86,7 @@
             top: -4px;
             bottom: -4px;
             width: 2px;
-            background-color: #3F3F3F; 
+            background-color: #2A3B00; 
             z-index: 10;
         }
         .breakeven-label {
@@ -94,7 +94,7 @@
             top: -20px;
             transform: translateX(-50%);
             font-size: 9px;
-            color: #3F3F3F;
+            color: #2A3B00;
             font-weight: bold;
             white-space: nowrap;
         }
@@ -156,7 +156,7 @@
             <div>
                 <h2 class="font-display text-xl font-bold" id="pageTitle">Tổng Quan Tháng <span id="displayMonth">2</span>/2026</h2>
                 <p class="text-xs text-gray-400 flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    <span class="w-2 h-2 rounded-full bg-zen-sage animate-pulse"></span>
                     Dữ liệu thực tế [Tự động cập nhật]
                 </p>
             </div>
@@ -277,7 +277,7 @@
                         Chi Tiết Hiệu Quả Kinh Doanh
                     </h3>
                     <div class="flex gap-2">
-                         <span class="text-xs text-zen-tea bg-white px-3 py-1 rounded-full border border-zen-tea font-bold shadow-sm">Thực đạt</span>
+                         <span class="text-xs text-zen-tea bg-zen-tea/10 px-3 py-1 rounded-full border border-zen-tea/30 font-bold shadow-sm">Thực đạt</span>
                          <span class="text-xs text-gray-400 bg-white px-3 py-1 rounded-full border border-zen-gray">Target</span>
                     </div>
                 </div>
@@ -537,6 +537,7 @@ PHỤC LINH,HẢI PHÒNG,2026-01-30,2,3300000,1650000
 PHỤC LINH,HẢI PHÒNG,2026-01-31,2,1000000,500000
 `;
 
+        // --- M2 - EXTRACTED DIRECTLY FROM NEW UPLOADED EXCEL "Chi tiết.xlsx - Tháng 2" ---
         const csvRaw_M2 = `
 AN NGUYÊN,LONG BIÊN,2026-02-01,2,1500000,750000
 AN NGUYÊN,LONG BIÊN,2026-02-02,8,6000000,750000
@@ -736,7 +737,7 @@ PHỤC LINH,HẢI PHÒNG,2026-02-27,0,0,0
 PHỤC LINH,HẢI PHÒNG,2026-02-28,0,0,0
 `;
 
-        // --- 2. CSV RAW DATA (Ads Cost) - UPDATED FROM 'Tổng hợp.xlsx' ---
+        // --- 2. CSV RAW DATA (Ads Cost) ---
         const csvAdsRaw_M1 = `
 AN NGUYÊN,LONG BIÊN,2026-01-31,200281629
 AN NHIÊN,ADV,2026-01-31,141863670
@@ -747,6 +748,7 @@ PHỤC LINH,HẢI PHÒNG,2026-01-31,113236478
 PHỤC LINH,XÃ ĐÀN,2026-01-31,314208557
 `;
         
+        // --- M2 - EXTRACTED FROM "Tổng hợp.xlsx - Tháng 2" ---
         const csvAdsRaw_M2 = `
 AN NGUYÊN,LONG BIÊN,2026-02-28,35226939
 AN NHIÊN,ADV,2026-02-28,36140989
@@ -757,8 +759,7 @@ PHỤC LINH,HÀ ĐÔNG,2026-02-28,85167269
 PHỤC LINH,HẢI PHÒNG,2026-02-28,39485625
 `;
 
-        // --- 3. SUMMARY TARGETS & REAL REVENUE - FROM 'Tổng hợp.xlsx' ---
-        // Added real_revenue, real_customers, and breakeven to ensure Cards display correct totals from Summary file
+        // --- 3. SUMMARY TARGETS & REAL REVENUE ---
         const summaryData_M1 = [
             { brand: 'AN NGUYÊN', branch: 'LONG BIÊN', target: 700000000, real_revenue: 631098000, real_customers: 156, breakeven: 600000000 },
             { brand: 'AN NHIÊN', branch: 'ADV', target: 500000000, real_revenue: 248000000, real_customers: 102, breakeven: 350000000 },
@@ -769,15 +770,24 @@ PHỤC LINH,HẢI PHÒNG,2026-02-28,39485625
             { brand: 'PHỤC LINH', branch: 'XÃ ĐÀN', target: 1080000000, real_revenue: 1100867000, real_customers: 198, breakeven: 800000000 } 
         ];
 
-        const summaryData_M2 = [{"brand": "AN NGUYÊN", "branch": "LONG BIÊN", "real_revenue": 238179000, "target": 400000000, "real_customers": 52, "breakeven": 334000000}, {"brand": "AN NHIÊN", "branch": "ADV", "real_revenue": 75500000, "target": 240000000, "real_customers": 33, "breakeven": 350000000}, {"brand": "AN NHIÊN", "branch": "CMT8", "real_revenue": 67900000, "target": 240000000, "real_customers": 28, "breakeven": 350000000}, {"brand": "PHỤC LINH", "branch": "XÃ ĐÀN", "real_revenue": 518619000, "target": 600000000, "real_customers": 58, "breakeven": 800000000}, {"brand": "PHỤC LINH", "branch": "CẦU GIẤY", "real_revenue": 429319000, "target": 500000000, "real_customers": 60, "breakeven": 600000000}, {"brand": "PHỤC LINH", "branch": "HÀ ĐÔNG", "real_revenue": 259180000, "target": 400000000, "real_customers": 71, "breakeven": 600000000}, {"brand": "PHỤC LINH", "branch": "HẢI PHÒNG", "real_revenue": 111900000, "target": 240000000, "real_customers": 40, "breakeven": 450000000}];
+        // --- M2 - EXTRACTED FROM "Tổng hợp.xlsx - Tháng 2" ---
+        const summaryData_M2 = [
+            {"brand": "AN NGUYÊN", "branch": "LONG BIÊN", "real_revenue": 238179000, "target": 400000000, "real_customers": 52, "breakeven": 334000000}, 
+            {"brand": "AN NHIÊN", "branch": "ADV", "real_revenue": 75500000, "target": 240000000, "real_customers": 33, "breakeven": 350000000}, 
+            {"brand": "AN NHIÊN", "branch": "CMT8", "real_revenue": 67900000, "target": 240000000, "real_customers": 28, "breakeven": 350000000}, 
+            {"brand": "PHỤC LINH", "branch": "XÃ ĐÀN", "real_revenue": 518619000, "target": 600000000, "real_customers": 58, "breakeven": 800000000}, 
+            {"brand": "PHỤC LINH", "branch": "CẦU GIẤY", "real_revenue": 429319000, "target": 500000000, "real_customers": 60, "breakeven": 600000000}, 
+            {"brand": "PHỤC LINH", "branch": "HÀ ĐÔNG", "real_revenue": 259180000, "target": 400000000, "real_customers": 71, "breakeven": 600000000}, 
+            {"brand": "PHỤC LINH", "branch": "HẢI PHÒNG", "real_revenue": 111900000, "target": 240000000, "real_customers": 40, "breakeven": 450000000}
+        ];
 
         // --- CONSULTANT COMMENTS ---
         const comments_M1 = `
             <p><strong>1. Hiện trạng Kinh doanh</strong><br>
-            <span class="font-bold">• Phân hóa doanh thu:</span> Có sự chênh lệch lớn. <span class="text-green-600 font-bold">Cầu Giấy (118%)</span> và <span class="text-green-600 font-bold">Xã Đàn (101.77%)</span> xuất sắc vượt KPI. Ngược lại, <span class="text-red-600 font-bold">ADV và CMT8</span> rơi vào mức báo động đỏ (dưới 50%). <span class="text-yellow-600 font-bold">Hà Đông và Long Biên</span> hoàn thành ở mức khá (trên 90%).<br>
+            <span class="font-bold">• Phân hóa doanh thu:</span> Có sự chênh lệch lớn. <span class="text-zen-tea font-bold">Cầu Giấy (118%)</span> và <span class="text-zen-tea font-bold">Xã Đàn (101.77%)</span> xuất sắc vượt KPI. Ngược lại, <span class="text-red-600 font-bold">ADV và CMT8</span> rơi vào mức báo động đỏ (dưới 50%). <span class="text-yellow-600 font-bold">Hà Đông và Long Biên</span> hoàn thành ở mức khá (trên 90%).<br>
             <span class="font-bold">• Giá trị đơn hàng:</span> Tương đồng với doanh thu. Nhóm dẫn đầu đạt trung bình trên 5 triệu/đơn, trong khi nhóm cuối bảng (ADV, CMT8, Hải Phòng) chỉ đạt mức thấp ~2.5 triệu.</p>
             <p><strong>2. Hiệu quả Marketing</strong><br>
-            <span class="font-bold text-green-600">• Tối ưu nhất:</span> <strong>Cầu Giấy</strong> (Chi phí Ads trung bình nhưng doanh thu thuộc top đầu).<br>
+            <span class="font-bold text-zen-tea">• Tối ưu nhất:</span> <strong>Cầu Giấy</strong> (Chi phí Ads trung bình nhưng doanh thu thuộc top đầu).<br>
             <span class="font-bold text-red-600">• Lãng phí:</span> <strong>Xã Đàn</strong> (Doanh thu cao nhưng chi phí Ads gấp đôi Cầu Giấy). <strong>Hà Đông và Long Biên</strong> cũng chi tiêu cao nhưng doanh thu chưa tương xứng.</p>
             <p><strong>3. Đề xuất trọng tâm</strong><br>
             <span class="font-bold text-zen-tea">▶️ Chiến lược:</span> Lấy <strong>Cầu Giấy</strong> làm mô hình chuẩn để nhân rộng quy trình chốt đơn và quản lý chi phí.<br>
@@ -801,6 +811,7 @@ An Nhiên ADV,336,31,30
 An Nhiên CMT8,357,24,28
 `;
 
+        // --- M2 - EXTRACTED FROM "Tổng lead Mkt (1).xlsx" ---
         const csvMarketing_M2 = `
 Phục Linh,Xã Đàn,1131,68,58,0.39,0.25
 Phục Linh,Cầu Giấy,951,45,39,0.34,0.21
@@ -893,7 +904,6 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
                         const branch = cols[1];
                         let name = brand === 'Phục Linh' ? `Phục Linh ${branch}` : (brand === 'An Nguyên' ? 'An Nguyên' : `${brand} ${branch}`);
                         
-                        // Lấy tỷ lệ nhập tay, bỏ dấu phẩy và % nếu có
                         let r1 = cols[5].replace(/['"]/g, '').replace(',', '.');
                         let r2 = cols[6].replace(/['"]/g, '').replace(',', '.');
                         
@@ -909,7 +919,6 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
                             rate2: rate2
                         });
                     } else if (cols.length >= 4) {
-                        // Tương thích ngược với dữ liệu Tháng 1 (M1) không đổi
                         const name = cols[0];
                         const leads = parseInt(cols[1]) || 0;
                         const phones = parseInt(cols[2]) || 0;
@@ -933,9 +942,9 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
                             brand, branch, date: dateStr,
                             month: parseInt(dateStr.split('-')[1]),
                             day: parseInt(dateStr.split('-')[2]),
-                            value1: val, // Cust or Ads
-                            value2: parseFloat(cols[4]) || 0, // Rev
-                            value3: parseFloat(cols[5]) || 0 // Average Bill
+                            value1: val, 
+                            value2: parseFloat(cols[4]) || 0, 
+                            value3: parseFloat(cols[5]) || 0 
                         });
                     }
                 }
@@ -1108,12 +1117,12 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
                             data: [item.leads, item.phones, item.arrived],
                             backgroundColor: [
                                 'rgba(203, 191, 163, 0.6)', 
-                                'rgba(107, 143, 113, 0.6)', 
+                                'rgba(67, 94, 1, 0.6)', 
                                 'rgba(59, 130, 246, 0.6)'   
                             ],
                             borderColor: [
                                 '#CBBFA3',
-                                '#6B8F71',
+                                '#435E01',
                                 '#3b82f6'
                             ],
                             borderWidth: 1,
@@ -1124,33 +1133,20 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
                         indexAxis: 'y', 
                         responsive: true,
                         maintainAspectRatio: false,
-                        layout: {
-                            padding: {
-                                right: 45 // Padding right to show labels fully
-                            }
-                        },
+                        layout: { padding: { right: 45 } },
                         plugins: {
                             legend: { display: false },
                             datalabels: { 
-                                color: '#3F3F3F',
+                                color: '#2A3B00',
                                 anchor: 'end',
                                 align: 'right',
-                                font: {
-                                    weight: 'bold',
-                                    size: 11
-                                },
+                                font: { weight: 'bold', size: 11 },
                                 formatter: (value) => new Intl.NumberFormat('vi-VN').format(value)
                             },
-                             tooltip: {
-                                enabled: false 
-                            }
+                             tooltip: { enabled: false }
                         },
                         scales: {
-                            x: { 
-                                grid: { display: false }, 
-                                beginAtZero: true,
-                                display: false 
-                            },
+                            x: { grid: { display: false }, beginAtZero: true, display: false },
                             y: { grid: { display: false } }
                         }
                     },
@@ -1167,7 +1163,7 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
             sorted.forEach((item, idx) => {
                 const percent = item.target > 0 ? (item.revenue / item.target) * 100 : 0;
                 
-                // Breakeven logic (Tự động co giãn biểu đồ để vạch hòa vốn luôn hiển thị)
+                // Breakeven logic (Auto scale to always show black line)
                 const maxScale = Math.max(item.target, item.breakeven, item.revenue);
                 const visualRevPercent = maxScale > 0 ? (item.revenue / maxScale) * 100 : 0;
                 const visualBePercent = maxScale > 0 ? (item.breakeven / maxScale) * 100 : 0;
@@ -1178,7 +1174,7 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
                 const baseClasses = "bg-zen-card p-5 rounded-xl border flex flex-col justify-between reveal-on-scroll";
                 const borderClass = isTop1 ? "card-top-1 z-10" : "border-zen-gray card-hover shadow-sm";
                 card.className = `${baseClasses} ${borderClass}`; card.style.transitionDelay = `${idx * 150}ms`;
-                let brandColor = 'text-zen-tea'; let brandBg = 'bg-zen-sage/20';
+                let brandColor = 'text-zen-tea'; let brandBg = 'bg-zen-tea/20';
                 if(item.brand === 'AN NHIÊN') { brandColor = 'text-orange-600'; brandBg = 'bg-orange-100'; }
                 if(item.brand === 'PHỤC LINH') { brandColor = 'text-blue-600'; brandBg = 'bg-blue-100'; }
                 
@@ -1196,17 +1192,17 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
                     ${item.target > 0 ? `
                     <div class="mt-4 pt-4 border-t border-gray-200">
                         <div class="progress-bar-bg mb-4 bg-gray-200 !h-2.5 rounded-full relative">
-                            <div class="breakeven-marker !w-1 bg-zen-dark absolute top-0 bottom-0 z-10" style="left: ${Math.min(visualBePercent, 99.5)}%;"></div>
-                            <div class="breakeven-label" style="left: ${Math.min(visualBePercent, 99.5)}%;">DT hòa vốn</div>
-                            <div class="progress-bar-fill !h-full rounded-full ${isProfitable ? 'bg-green-500' : 'bg-red-400'}" style="width: 0%" data-width="${Math.min(visualRevPercent, 100)}"></div>
+                            <div class="breakeven-marker !w-1 absolute top-0 bottom-0 z-10 bg-zen-dark" style="left: ${Math.min(visualBePercent, 99.5)}%;"></div>
+                            <div class="breakeven-label text-zen-dark" style="left: ${Math.min(visualBePercent, 99.5)}%;">DT hòa vốn</div>
+                            <div class="progress-bar-fill !h-full rounded-full ${isProfitable ? 'bg-zen-sage' : 'bg-red-400'}" style="width: 0%" data-width="${Math.min(visualRevPercent, 100)}"></div>
                         </div>
                         
                         <div class="flex justify-between items-center mb-3">
-                            <span class="${percent >= 100 ? 'text-green-600' : 'text-red-500'} font-extrabold text-base">Đạt ${percent.toFixed(1)}% KPI</span>
+                            <span class="${percent >= 100 ? 'text-zen-tea' : 'text-red-500'} font-extrabold text-base">Đạt ${percent.toFixed(1)}% KPI</span>
                             <div class="flex items-center text-blue-600 font-extrabold text-sm bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100 shadow-sm"><i data-lucide="users" class="w-4 h-4 mr-1"></i> ${item.customers} KH</div>
                         </div>
                         <div class="text-sm flex justify-between items-center font-bold">
-                             <span class="${isProfitable ? 'text-green-700 bg-green-100 border border-green-200' : 'text-red-600 bg-red-50 border border-red-200'} px-2.5 py-1.5 rounded-md shadow-sm">${isProfitable ? '✅ Đã Có Lãi' : '🔻 Chưa Hòa Vốn'}</span>
+                             <span class="${isProfitable ? 'text-zen-tea bg-zen-tea/10 border border-zen-tea/20' : 'text-red-600 bg-red-50 border border-red-200'} px-2.5 py-1.5 rounded-md shadow-sm">${isProfitable ? '✅ Đã Có Lãi' : '🔻 Chưa Hòa Vốn'}</span>
                              <span class="text-zen-dark bg-gray-100 px-2.5 py-1.5 rounded-md border border-gray-200 shadow-sm">Mốc HV: ${formatShort(item.breakeven)}</span>
                         </div>
                     </div>` : ''}
@@ -1241,8 +1237,8 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
                     cirClass = 'text-yellow-600 font-bold';
                     cirBadge = '<span class="px-2 py-1 rounded bg-yellow-100 text-yellow-600 text-xs font-bold">Khá</span>';
                 } else if (cir > 0) {
-                    cirClass = 'text-green-600 font-bold';
-                    cirBadge = '<span class="px-2 py-1 rounded bg-green-100 text-green-600 text-xs font-bold">Tốt</span>';
+                    cirClass = 'text-zen-tea font-bold';
+                    cirBadge = '<span class="px-2 py-1 rounded bg-zen-tea/10 text-zen-tea border border-zen-tea/20 text-xs font-bold">Tốt</span>';
                 }
 
                 tr.innerHTML = `
@@ -1288,7 +1284,8 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
 
             if(chartInstances.main) chartInstances.main.destroy();
             const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-            gradient.addColorStop(0, 'rgba(107, 143, 113, 0.4)'); gradient.addColorStop(1, 'rgba(107, 143, 113, 0.0)');
+            gradient.addColorStop(0, 'rgba(67, 94, 1, 0.4)'); /* Matcha gradient */
+            gradient.addColorStop(1, 'rgba(67, 94, 1, 0.0)');
             
             chartInstances.main = new Chart(ctx, {
                 type: 'bar',
@@ -1299,7 +1296,7 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
                             label: 'Doanh Thu Ngày', 
                             data: revData, 
                             type: 'line', 
-                            borderColor: '#6B8F71', 
+                            borderColor: '#435E01', 
                             backgroundColor: gradient, 
                             borderWidth: 2, 
                             tension: 0.4, 
@@ -1308,7 +1305,7 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
                             order: 2,
                             pointRadius: 0, 
                             pointHoverRadius: 6, 
-                            pointBackgroundColor: '#6B8F71',
+                            pointBackgroundColor: '#435E01',
                             datalabels: { display: false } 
                         },
                         { 
@@ -1346,8 +1343,8 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
                         legend: { display: true, position: 'top', align: 'end', labels: { boxWidth: 10, usePointStyle: true, font: {size: 11, family: 'Nunito'} } },
                         tooltip: { 
                             backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-                            titleColor: '#3F3F3F', 
-                            bodyColor: '#3F3F3F', 
+                            titleColor: '#2A3B00', 
+                            bodyColor: '#2A3B00', 
                             borderColor: '#E5E5E5', 
                             borderWidth: 1, 
                             padding: 10, 
