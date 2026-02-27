@@ -119,8 +119,10 @@
 
         /* Consultant Box */
         .consultant-box {
-            background: linear-gradient(135deg, #fdfbf7 0%, #fff 100%);
+            background: linear-gradient(135deg, #FDF9F1 0%, #F0E3C2 100%);
+            border: 1px solid rgba(212, 175, 55, 0.3);
             border-left: 4px solid #D4AF37;
+            box-shadow: 0 10px 25px -5px rgba(212, 175, 55, 0.15);
         }
     </style>
 </head>
@@ -176,17 +178,18 @@
             
             <!-- CONSULTANT BOX (DYNAMIC CONTENT) -->
             <div class="mb-8 reveal-on-scroll" style="transition-delay: 0ms;">
-                <div class="consultant-box p-6 rounded-2xl shadow-sm border border-zen-gray relative">
-                    <div class="absolute top-4 right-4 text-zen-wood opacity-20">
-                        <i data-lucide="quote" class="w-16 h-16"></i>
+                <div class="consultant-box p-6 rounded-2xl relative overflow-hidden">
+                    <div class="absolute top-4 right-4 text-zen-gold opacity-10">
+                        <i data-lucide="quote" class="w-20 h-20"></i>
                     </div>
-                    <div class="flex items-start gap-4">
-                        <div class="bg-white p-3 rounded-full shadow-sm border border-zen-gray shrink-0">
+                    <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/30 blur-3xl rounded-full"></div>
+                    <div class="flex items-start gap-4 relative z-10">
+                        <div class="bg-white/90 backdrop-blur p-3 rounded-full shadow-sm border border-zen-gold/20 shrink-0">
                             <i data-lucide="briefcase" class="w-6 h-6 text-zen-gold"></i>
                         </div>
-                        <div class="flex-1 z-10">
+                        <div class="flex-1">
                             <h3 class="font-display font-bold text-lg text-zen-dark mb-3">Góc Nhìn Chiến Lược</h3>
-                            <div class="text-sm text-gray-700 leading-relaxed space-y-3" id="consultant-content">
+                            <div class="text-sm text-zen-dark/80 leading-relaxed space-y-3 font-medium" id="consultant-content">
                                 <!-- Content injected by JS -->
                             </div>
                         </div>
