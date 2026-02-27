@@ -1234,14 +1234,14 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
                 let cirBadge = '<span class="px-2 py-1 rounded bg-gray-100 text-gray-500 text-xs font-bold">Ổn định</span>';
                 
                 if (cir > 50) {
-                    cirClass = 'text-red-500 font-bold';
-                    cirBadge = '<span class="px-2 py-1 rounded bg-red-100 text-red-600 text-xs font-bold">Trung bình</span>';
+                    cirClass = 'text-red-600 font-extrabold';
+                    cirBadge = '<span class="px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-bold shadow-sm">Báo động</span>';
                 } else if (cir > 30) {
-                    cirClass = 'text-yellow-600 font-bold';
-                    cirBadge = '<span class="px-2 py-1 rounded bg-yellow-100 text-yellow-600 text-xs font-bold">Khá</span>';
+                    cirClass = 'text-red-500 font-bold';
+                    cirBadge = '<span class="px-2 py-1 rounded bg-red-50 text-red-600 border border-red-200 text-xs font-bold shadow-sm">Cần tối ưu</span>';
                 } else if (cir > 0) {
                     cirClass = 'text-zen-tea font-bold';
-                    cirBadge = '<span class="px-2 py-1 rounded bg-zen-tea/10 text-zen-tea border border-zen-tea/20 text-xs font-bold">Tốt</span>';
+                    cirBadge = '<span class="px-2 py-1 rounded bg-zen-tea/10 text-zen-tea border border-zen-tea/20 text-xs font-bold shadow-sm">Tốt</span>';
                 }
 
                 tr.innerHTML = `
