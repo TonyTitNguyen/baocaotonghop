@@ -32,7 +32,11 @@
                             wood: '#CBBFA3',
                             gray: '#E5E5E5',
                             red: '#DFA7A7',
-                            gold: '#D4AF37'
+                            gold: '#D4AF37',
+                            /* Thêm dải màu xanh cho phễu Marketing */
+                            matcha_dark: '#2A3B00',
+                            matcha_medium: '#435E01',
+                            matcha_light: '#628502'
                         }
                     },
                     animation: {
@@ -193,50 +197,54 @@
             <!-- KPI CARDS -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <!-- KPI 1 -->
-                <div class="bg-zen-card p-6 rounded-2xl shadow-sm border border-zen-gray card-hover reveal-on-scroll" style="transition-delay: 100ms;">
-                    <div class="flex justify-between items-start">
+                <div class="bg-gradient-to-br from-zen-sage to-zen-dark p-6 rounded-2xl shadow-lg shadow-zen-dark/20 border-none card-hover reveal-on-scroll relative overflow-hidden" style="transition-delay: 100ms;">
+                    <div class="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/10 blur-2xl"></div>
+                    <div class="relative z-10 flex justify-between items-start">
                         <div>
-                            <p class="text-gray-500 text-xs font-bold uppercase tracking-wide">Doanh Thu Thực Đạt</p>
-                            <h3 class="text-2xl font-display font-bold mt-2 text-zen-dark" id="kpi-revenue">0</h3>
+                            <p class="text-white/80 text-xs font-bold uppercase tracking-wide">Doanh Thu Thực Đạt</p>
+                            <h3 class="text-3xl font-display font-bold mt-2 text-white drop-shadow-sm" id="kpi-revenue">0</h3>
                         </div>
-                        <div class="p-2 bg-zen-tea/10 rounded-lg text-zen-tea ring-1 ring-zen-tea/20">
-                            <i data-lucide="banknote" class="w-5 h-5"></i>
+                        <div class="p-3 bg-white/20 rounded-xl text-white ring-1 ring-white/30 backdrop-blur-sm shadow-sm">
+                            <i data-lucide="banknote" class="w-6 h-6"></i>
                         </div>
                     </div>
                 </div>
                 <!-- KPI 2 -->
-                <div class="bg-zen-card p-6 rounded-2xl shadow-sm border border-zen-gray card-hover reveal-on-scroll" style="transition-delay: 200ms;">
-                    <div class="flex justify-between items-start">
+                <div class="bg-gradient-to-br from-emerald-500 to-teal-700 p-6 rounded-2xl shadow-lg shadow-teal-700/20 border-none card-hover reveal-on-scroll relative overflow-hidden" style="transition-delay: 200ms;">
+                    <div class="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/10 blur-2xl"></div>
+                    <div class="relative z-10 flex justify-between items-start">
                         <div>
-                            <p class="text-gray-500 text-xs font-bold uppercase tracking-wide">Tổng Lượng Khách</p>
-                            <h3 class="text-2xl font-display font-bold mt-2 text-zen-dark" id="kpi-customers">0</h3>
+                            <p class="text-white/80 text-xs font-bold uppercase tracking-wide">Tổng Lượng Khách</p>
+                            <h3 class="text-3xl font-display font-bold mt-2 text-white drop-shadow-sm" id="kpi-customers">0</h3>
                         </div>
-                        <div class="p-2 bg-emerald-100 rounded-lg text-emerald-600 ring-1 ring-emerald-600/20">
-                            <i data-lucide="users" class="w-5 h-5"></i>
+                        <div class="p-3 bg-white/20 rounded-xl text-white ring-1 ring-white/30 backdrop-blur-sm shadow-sm">
+                            <i data-lucide="users" class="w-6 h-6"></i>
                         </div>
                     </div>
                 </div>
                 <!-- KPI 3 -->
-                <div class="bg-zen-card p-6 rounded-2xl shadow-sm border border-zen-gray card-hover reveal-on-scroll" style="transition-delay: 300ms;">
-                    <div class="flex justify-between items-start">
+                <div class="bg-gradient-to-br from-rose-500 to-red-700 p-6 rounded-2xl shadow-lg shadow-red-700/20 border-none card-hover reveal-on-scroll relative overflow-hidden" style="transition-delay: 300ms;">
+                    <div class="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/10 blur-2xl"></div>
+                    <div class="relative z-10 flex justify-between items-start">
                         <div>
-                            <p class="text-gray-500 text-xs font-bold uppercase tracking-wide">Chi Phí Ads</p>
-                            <h3 class="text-2xl font-display font-bold mt-2 text-zen-dark" id="kpi-ads">0</h3>
+                            <p class="text-white/80 text-xs font-bold uppercase tracking-wide">Chi Phí Ads</p>
+                            <h3 class="text-3xl font-display font-bold mt-2 text-white drop-shadow-sm" id="kpi-ads">0</h3>
                         </div>
-                        <div class="p-2 bg-red-100 rounded-lg text-red-600 ring-1 ring-red-600/20">
-                            <i data-lucide="megaphone" class="w-5 h-5"></i>
+                        <div class="p-3 bg-white/20 rounded-xl text-white ring-1 ring-white/30 backdrop-blur-sm shadow-sm">
+                            <i data-lucide="megaphone" class="w-6 h-6"></i>
                         </div>
                     </div>
                 </div>
                 <!-- KPI 4 -->
-                <div class="bg-zen-card p-6 rounded-2xl shadow-sm border border-zen-gray card-hover reveal-on-scroll" style="transition-delay: 400ms;">
-                    <div class="flex justify-between items-start">
+                <div class="bg-gradient-to-br from-amber-500 to-orange-600 p-6 rounded-2xl shadow-lg shadow-orange-600/20 border-none card-hover reveal-on-scroll relative overflow-hidden" style="transition-delay: 400ms;">
+                    <div class="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/10 blur-2xl"></div>
+                    <div class="relative z-10 flex justify-between items-start">
                         <div>
-                            <p class="text-gray-500 text-xs font-bold uppercase tracking-wide">Trung Bình Bill</p>
-                            <h3 class="text-2xl font-display font-bold mt-2 text-zen-dark" id="kpi-bill">0</h3>
+                            <p class="text-white/80 text-xs font-bold uppercase tracking-wide">Trung Bình Bill</p>
+                            <h3 class="text-3xl font-display font-bold mt-2 text-white drop-shadow-sm" id="kpi-bill">0</h3>
                         </div>
-                        <div class="p-2 bg-orange-100 rounded-lg text-orange-600 ring-1 ring-orange-600/20">
-                            <i data-lucide="pie-chart" class="w-5 h-5"></i>
+                        <div class="p-3 bg-white/20 rounded-xl text-white ring-1 ring-white/30 backdrop-blur-sm shadow-sm">
+                            <i data-lucide="pie-chart" class="w-6 h-6"></i>
                         </div>
                     </div>
                 </div>
@@ -1099,9 +1107,9 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
                             <div class="font-bold text-zen-dark text-xs uppercase tracking-wide mb-1">Tỷ lệ xin số</div>
                             <div class="text-zen-tea font-extrabold text-xl">${item.rate1}</div>
                         </div>
-                         <div class="bg-emerald-50 p-2.5 rounded-lg border border-emerald-200 shadow-sm">
+                         <div class="bg-green-50 p-2.5 rounded-lg border border-green-200 shadow-sm">
                             <div class="font-bold text-zen-dark text-xs uppercase tracking-wide mb-1">Tỷ lệ telesale</div>
-                            <div class="text-emerald-600 font-extrabold text-xl">${item.rate2}</div>
+                            <div class="text-green-500 font-extrabold text-xl">${item.rate2}</div>
                         </div>
                     </div>
                 `;
@@ -1116,14 +1124,14 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
                             label: 'Số lượng',
                             data: [item.leads, item.phones, item.arrived],
                             backgroundColor: [
-                                'rgba(143, 175, 159, 0.6)', /* Sage Green instead of Beige */
-                                'rgba(67, 94, 1, 0.6)',     /* Matcha */
-                                'rgba(5, 150, 105, 0.6)'    /* Emerald Green instead of Blue */
+                                'rgba(42, 59, 0, 0.7)',  /* Darkest Matcha for Lead */
+                                'rgba(67, 94, 1, 0.7)',  /* Medium Matcha for SĐT */
+                                'rgba(98, 133, 2, 0.7)'  /* Lightest Matcha for Khách Đến */
                             ],
                             borderColor: [
-                                '#8FAF9F', /* Sage Green */
-                                '#435E01', /* Matcha */
-                                '#059669'  /* Emerald Green */
+                                '#2A3B00', /* Darkest Matcha */
+                                '#435E01', /* Medium Matcha */
+                                '#628502'  /* Lightest Matcha */
                             ],
                             borderWidth: 1,
                             barPercentage: 0.6
@@ -1175,10 +1183,11 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
                 const borderClass = isTop1 ? "card-top-1 z-10" : "border-zen-gray card-hover shadow-sm";
                 card.className = `${baseClasses} ${borderClass}`; card.style.transitionDelay = `${idx * 150}ms`;
                 
-                // Changed Brand Colors to harmonized Green palette
+                // Keep the color differentiation for brands but maybe tweak them if needed. 
+                // For now, retaining the previous change.
                 let brandColor = 'text-zen-tea'; let brandBg = 'bg-zen-tea/20';
-                if(item.brand === 'AN NHIÊN') { brandColor = 'text-lime-700'; brandBg = 'bg-lime-100'; } // Was Orange
-                if(item.brand === 'PHỤC LINH') { brandColor = 'text-emerald-700'; brandBg = 'bg-emerald-100'; } // Was Blue
+                if(item.brand === 'AN NHIÊN') { brandColor = 'text-lime-700'; brandBg = 'bg-lime-100'; } 
+                if(item.brand === 'PHỤC LINH') { brandColor = 'text-green-600'; brandBg = 'bg-green-100'; }
                 
                 card.innerHTML = `
                     <div>
@@ -1201,7 +1210,7 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
                         
                         <div class="flex justify-between items-center mb-3">
                             <span class="${percent >= 100 ? 'text-zen-tea' : 'text-red-500'} font-extrabold text-base">Đạt ${percent.toFixed(1)}% KPI</span>
-                            <div class="flex items-center text-emerald-700 font-extrabold text-sm bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 shadow-sm"><i data-lucide="users" class="w-4 h-4 mr-1"></i> ${item.customers} KH</div>
+                            <div class="flex items-center text-green-600 font-extrabold text-sm bg-green-50 px-2.5 py-1 rounded-md border border-green-200 shadow-sm"><i data-lucide="users" class="w-4 h-4 mr-1"></i> ${item.customers} KH</div>
                         </div>
                         <div class="text-sm flex justify-between items-center font-bold">
                              <span class="${isProfitable ? 'text-zen-tea bg-zen-tea/10 border border-zen-tea/20' : 'text-red-600 bg-red-50 border border-red-200'} px-2.5 py-1.5 rounded-md shadow-sm">${isProfitable ? '✅ Đã Có Lãi' : '🔻 Chưa Hòa Vốn'}</span>
@@ -1224,11 +1233,10 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
                 const tr = document.createElement('tr');
                 const cir = item.revenue > 0 ? (item.ads / item.revenue) * 100 : 0;
                 
-                // Changed Brand Colors to harmonized Green palette
                 let brandIcon = 'sprout';
                 let brandColor = 'text-zen-tea';
-                if(item.brand === 'AN NHIÊN') { brandIcon = 'sun'; brandColor = 'text-lime-600'; } // Was Orange
-                if(item.brand === 'PHỤC LINH') { brandIcon = 'heart-pulse'; brandColor = 'text-emerald-600'; } // Was Blue
+                if(item.brand === 'AN NHIÊN') { brandIcon = 'sun'; brandColor = 'text-lime-600'; }
+                if(item.brand === 'PHỤC LINH') { brandIcon = 'heart-pulse'; brandColor = 'text-green-500'; }
 
                 let cirClass = 'text-zen-dark';
                 let cirBadge = '<span class="px-2 py-1 rounded bg-gray-100 text-gray-500 text-xs font-bold">Ổn định</span>';
@@ -1331,8 +1339,8 @@ An Nhiên,CMT8,357,24,28,0.3,0.27
                             label: 'Lượng Khách',
                             data: custData,
                             type: 'bar',
-                            backgroundColor: 'rgba(5, 150, 105, 0.2)', /* Emerald Green instead of Blue */
-                            hoverBackgroundColor: 'rgba(5, 150, 105, 0.4)',
+                            backgroundColor: 'rgba(34, 197, 94, 0.2)', /* Green instead of Blue/Emerald */
+                            hoverBackgroundColor: 'rgba(34, 197, 94, 0.4)',
                             borderRadius: 4,
                             yAxisID: 'y_cust',
                             order: 3,
