@@ -90,11 +90,11 @@ function renderMarketingFunnels(data) {
             <h4 class="font-bold text-center mb-4">${item.name}</h4>
             <div class="h-40 mb-4"><canvas id="funnel-${index}"></canvas></div>
             <div class="grid grid-cols-2 gap-3 mt-auto">
-                <div class="bg-[#F3F4E8] p-3 rounded-xl border border-[#E0E2CD]">
+                <div class="bg-[#F3F4E8] p-3 rounded-xl border border-[#E0E2CD] text-center">
                     <div class="font-bold text-[#435E01] text-[10px] uppercase tracking-wider mb-1">Tỷ lệ xin số</div>
                     <div class="text-[#435E01] font-extrabold text-2xl">${rate1Val}</div>
                 </div>
-                <div class="bg-[#ECFDF5] p-3 rounded-xl border border-[#A7F3D0]">
+                <div class="bg-[#ECFDF5] p-3 rounded-xl border border-[#A7F3D0] text-center">
                     <div class="font-bold text-[#047857] text-[10px] uppercase tracking-wider mb-1">Tỷ lệ telesale</div>
                     <div class="text-[#059669] font-extrabold text-2xl">${rate2Val}</div>
                 </div>
@@ -106,7 +106,26 @@ function renderMarketingFunnels(data) {
         funnelChartInstances[index] = new Chart(ctx, {
             type: 'bar',
             data: { labels: ['Lead', 'SĐT', 'Đến'], datasets: [{ data: [item.leads, item.phones, item.arrived], backgroundColor: ['#2A3B00', '#435E01', '#628502'] }] },
-            options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            plugins: [ChartDataLabels],
+            options: { 
+                indexAxis: 'y', 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { 
+                    legend: { display: false },
+                    datalabels: {
+                        color: '#fff',
+                        font: { weight: 'bold' },
+                        anchor: 'end',
+                        align: 'left',
+                        formatter: (value) => new Intl.NumberFormat('vi-VN').format(value)
+                    }
+                },
+                scales: {
+                    x: { display: false, grid: { display: false } }, // Hide x axis completely
+                    y: { grid: { display: false }, border: { display: false } } // Hide y grid lines
+                }
+            }
         });
     });
 }
