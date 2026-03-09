@@ -73,9 +73,44 @@ async function setMonth(month) {
         // Nếu có data -> Hiện lại và Render
         document.querySelectorAll('.section-to-hide').forEach(el => el.style.display = 'block');
         titleEl.innerHTML = `Tổng Quan Tháng <span id="displayMonth">${month}</span>/<span id="displayYear">${currentYear}</span>`;
-        document.getElementById('consultant-content').innerHTML = MONTHLY_COMMENTS[month] || "Đang cập nhật nhận định...";
         updateDashboard();
+        
+        // --- CHẠY NGẦM GỌI GEMINI ---
+        // Gọi thẳng AI để lấy nhận định thật
+        setTimeout(() => fetchAISummary(month, currentYear), 500);
+        
+        // Cập nhật Lệnh Đề Xuất tĩnh theo tháng
+        if (typeof updateStaticSuggestions === 'function') updateStaticSuggestions(month);
     }
+}
+
+// 4.5 Hàm kết nối AI ngầm
+function fetchAISummary(month, year) {
+    const consultantBox = document.getElementById('consultant-content');
+    if (!consultantBox) return;
+
+    // Hiển thị trạng thái đang tải
+    consultantBox.innerHTML = `<p class="text-gray-500 italic flex items-center gap-2"><i data-lucide="loader-2" class="w-4 h-4 animate-spin text-zen-tea"></i> Trợ lý AI đang tư duy...</p>`;
+    if (window.lucide) lucide.createIcons();
+
+    const prompt = `Viết 1 đoạn tóm tắt Góc Nhìn Chiến Lược gọn gàng (không quá 4 dòng) dựa trên số liệu của tháng này. Trình bày dưới dạng gạch đầu dòng ngắn gọn. KHÔNG thêm các câu chào hỏi thừa thãi.`;
+    
+    fetch(`${APPS_SCRIPT_URL}?action=chat&q=${encodeURIComponent(prompt)}&month=${month}&year=${year}`, {
+        method: 'GET',
+        redirect: 'follow'
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("API Error");
+        return res.text();
+    })
+    .then(aiText => {
+        // Ghi đè AI Summary lên trên màn hình loading
+        consultantBox.innerHTML = typeof formatMarkdown === 'function' ? formatMarkdown(aiText) : aiText;
+    })
+    .catch(err => {
+        console.error("Lỗi khi load AI Summary tĩnh:", err);
+        consultantBox.innerHTML = `<p class="text-red-500 text-xs">Không thể kết nối với AI lúc này.</p>`;
+    });
 }
 
 // 5. Hàm cập nhật toàn bộ giao diện

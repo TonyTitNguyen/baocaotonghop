@@ -1,4 +1,56 @@
-// js/ai-assistant.js
+// 0. Khởi tạo UI AI Assistant
+document.addEventListener('DOMContentLoaded', () => {
+    const chatArea = document.getElementById('aiChatArea');
+    if (chatArea && chatArea.children.length === 0) {
+        // Lời chào mặc định theo yêu cầu của Sếp
+        const welcomeDiv = document.createElement('div');
+        welcomeDiv.className = "flex gap-3 mb-4 w-full";
+        welcomeDiv.innerHTML = `
+            <div class="w-8 h-8 rounded-full bg-zen-tea/10 flex items-center justify-center shrink-0 border border-zen-tea/20 mt-1"><i data-lucide="bot" class="w-4 h-4 text-zen-tea"></i></div>
+            <div class="flex-1">
+                <div class="bg-white p-4 rounded-2xl rounded-tl-sm border border-zen-gray/50 text-sm leading-relaxed shadow-sm">
+                    <p class="font-bold text-zen-dark mb-2">Kính chào Sếp! Em là Trợ lý Điều hành AI.</p>
+                    <p class="mb-3">Khác với chatbot thường, em dùng Query Engine để tính toán Metrics thực tế.</p>
+                    <p class="font-semibold mb-1">Sếp hãy hỏi sâu về bất kỳ Metric nào (Doanh thu, Bill, Khách, CIR, Ads):</p>
+                    <ul class="list-disc pl-5 space-y-1 text-zen-dark/80">
+                        <li>"Cơ sở nào lãng phí ads nhất tháng 2?"</li>
+                        <li>"So sánh bill trung bình hệ thống T1 và T2"</li>
+                        <li>"Nơi nào đuối KPI nhất?"</li>
+                    </ul>
+                </div>
+            </div>
+        `;
+        chatArea.appendChild(welcomeDiv);
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    // Cập nhật Lệnh Đề Xuất (Gợi ý) - Ban đầu để trống, sẽ load động khi chọn Tháng
+    const suggestionsArea = document.getElementById('aiSuggestions');
+    if (suggestionsArea) {
+        suggestionsArea.innerHTML = `<span class="px-3 py-1.5 text-xs text-gray-400 italic flex items-center gap-2"><i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i> Đang tạo lệnh đề xuất...</span>`;
+    }
+});
+
+// Hàm cập nhật Lệnh đề xuất tĩnh dựa theo tháng hiện tại
+function updateStaticSuggestions(month) {
+    const suggestionsArea = document.getElementById('aiSuggestions');
+    if (!suggestionsArea) return;
+
+    // Lấy tháng trước đó (nếu là tháng 1 thì tháng trước là 12)
+    const prevMonth = (parseInt(month) === 1) ? 12 : parseInt(month) - 1;
+
+    const suggestions = [
+        `Chi phí ads cao nhất T${month}?`,
+        `So sánh KPI T${prevMonth} & T${month}`,
+        "Cơ sở nào đông khách nhất?"
+    ];
+    
+    suggestionsArea.innerHTML = suggestions.map(s => `
+        <button onclick="handleUserSubmit('${s}')" class="shrink-0 px-3 py-1.5 bg-zen-bg border border-zen-gray text-xs rounded-lg hover:border-zen-tea hover:text-zen-tea transition-colors whitespace-nowrap">
+            ${s}
+        </button>
+    `).join('');
+}
 
 // 1. Các hàm tiện ích
 function normalizeText(text) {

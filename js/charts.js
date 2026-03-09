@@ -113,17 +113,25 @@ function renderMarketingFunnels(data) {
                 maintainAspectRatio: false, 
                 plugins: { 
                     legend: { display: false },
-                    datalabels: {
-                        color: '#fff',
-                        font: { weight: 'bold' },
-                        anchor: 'end',
-                        align: 'left',
-                        formatter: (value) => new Intl.NumberFormat('vi-VN').format(value)
-                    }
+                    datalabels: { display: false }
                 },
                 scales: {
                     x: { display: false, grid: { display: false } }, // Hide x axis completely
-                    y: { grid: { display: false }, border: { display: false } } // Hide y grid lines
+                    y: { grid: { display: false }, border: { display: false } }, // Hide y grid lines
+                    y2: {
+                        position: 'right',
+                        grid: { display: false },
+                        border: { display: false },
+                        ticks: {
+                            color: '#000',
+                            font: { weight: 'bold', size: 14 },
+                            autoSkip: false,
+                            callback: function(value, index) {
+                                const vals = [item.leads, item.phones, item.arrived];
+                                return new Intl.NumberFormat('vi-VN').format(vals[index]);
+                            }
+                        }
+                    }
                 }
             }
         });
