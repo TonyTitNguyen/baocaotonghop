@@ -53,7 +53,13 @@ function renderMainChart(dailyData, month, year) {
                 x: { grid: { display: false } },
                 y: { type: 'linear', position: 'left', ticks: { callback: v => v / 1000000 + 'M' } },
                 y1: { type: 'linear', position: 'right', display: false, grid: { display: false } },
-                y2: { type: 'linear', position: 'right', display: false, grid: { display: false } }
+                y2: { 
+                    type: 'linear', 
+                    position: 'right', 
+                    display: true, 
+                    grid: { display: false },
+                    ticks: { callback: v => v / 1000000 + 'M', color: '#D4AF37' }
+                }
             }
         }
     });
@@ -73,8 +79,28 @@ function renderMarketingFunnels(data) {
 
     data.forEach((item, index) => {
         const div = document.createElement('div');
-        div.className = "bg-white p-5 rounded-xl border border-zen-gray shadow-sm";
-        div.innerHTML = `<h4 class="font-bold text-center mb-4">${item.name}</h4><div class="h-40"><canvas id="funnel-${index}"></canvas></div>`;
+        div.className = "bg-white p-5 rounded-xl border border-zen-gray shadow-sm flex flex-col";
+        
+        let rate1Val = item.rate1 || '0%';
+        if (!rate1Val.includes('%')) rate1Val += '%';
+        let rate2Val = item.rate2 || '0%';
+        if (!rate2Val.includes('%')) rate2Val += '%';
+        
+        div.innerHTML = `
+            <h4 class="font-bold text-center mb-4">${item.name}</h4>
+            <div class="h-40 mb-4"><canvas id="funnel-${index}"></canvas></div>
+            <div class="grid grid-cols-2 gap-3 mt-auto">
+                <div class="bg-[#F3F4E8] p-3 rounded-xl border border-[#E0E2CD]">
+                    <div class="font-bold text-[#435E01] text-[10px] uppercase tracking-wider mb-1">Tỷ lệ xin số</div>
+                    <div class="text-[#435E01] font-extrabold text-2xl">${rate1Val}</div>
+                </div>
+                <div class="bg-[#ECFDF5] p-3 rounded-xl border border-[#A7F3D0]">
+                    <div class="font-bold text-[#047857] text-[10px] uppercase tracking-wider mb-1">Tỷ lệ telesale</div>
+                    <div class="text-[#059669] font-extrabold text-2xl">${rate2Val}</div>
+                </div>
+            </div>
+        `;
+        
         container.appendChild(div);
         const ctx = document.getElementById(`funnel-${index}`).getContext('2d');
         funnelChartInstances[index] = new Chart(ctx, {
@@ -110,20 +136,31 @@ function renderBranchCards(data) {
                         <span class="text-gray-500 text-[11px] font-bold uppercase">Doanh thu</span>
                         <span class="text-xl font-extrabold text-zen-dark">${new Intl.NumberFormat('vi-VN').format(item.revenue)}</span>
                     </div>
-                    <div class="flex justify-between items-baseline">
+                    <div class="flex justify-between items-baseline mb-1">
                         <span class="text-gray-500 text-[11px] font-bold uppercase">Mục tiêu</span>
                         <span class="text-sm font-bold text-gray-500">${new Intl.NumberFormat('vi-VN').format(item.target)}</span>
                     </div>
                 </div>
             </div>
-            <div class="mt-4 pt-4 border-t border-gray-100">
-                <div class="progress-bar-bg mb-4">
+            <div class="mt-4 pt-4 border-t border-gray-100 flex flex-col gap-3">
+                <div class="progress-bar-bg">
                     <div class="breakeven-marker" style="left: ${visualBePercent}%"></div>
                     <div class="progress-bar-fill ${isProfitable ? 'bg-zen-sage' : 'bg-red-400'}" style="width: ${visualRevPercent}%"></div>
                 </div>
-                <div class="flex justify-between items-center mb-3">
+                
+                <div class="flex justify-between items-center">
                     <span class="text-sm font-bold ${item.percentKpi >= 100 ? 'text-zen-tea' : 'text-red-500'}">Đạt ${item.percentKpi.toFixed(1)}% KPI</span>
-                    <span class="text-[10px] bg-gray-50 px-2 py-1 rounded border border-gray-200">Mốc: ${new Intl.NumberFormat('vi-VN').format(item.breakeven)}</span>
+                    <div class="flex items-center text-green-600 font-extrabold text-xs md:text-sm bg-green-50 px-2 py-1 rounded-md border border-green-200 shadow-sm shrink-0">
+                        <i data-lucide="users" class="w-3.5 h-3.5 mr-1"></i> ${new Intl.NumberFormat('vi-VN').format(item.customers)} KH
+                    </div>
+                </div>
+                
+                <div class="flex justify-between items-center">
+                    ${isProfitable ? 
+                        '<span class="text-green-600 font-bold text-xs bg-green-50 border border-green-200 px-2 py-1.5 rounded-md shadow-sm whitespace-nowrap">🌟 Lãi</span>' : 
+                        '<span class="text-red-600 font-bold text-xs bg-red-50 border border-red-200 px-2 py-1.5 rounded-md shadow-sm whitespace-nowrap">🔻 Chưa Lãi</span>'
+                    }
+                    <span class="text-[10px] bg-gray-50 px-2 py-1 rounded border border-gray-200">Mốc: ${parseFloat((item.breakeven / 1000000).toFixed(1))}M</span>
                 </div>
             </div>
         `;
