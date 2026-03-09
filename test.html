@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Test API Connection</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 40px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #status {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Google Sheets API Debugger</h2>
+    <p>1. Paste your Web App URL into the code.</p>
+    <p>2. Open your browser's Developer Tools <b>(Press F12, then click the "Console" tab)</b>.</p>
+    <p>3. Click the button below.</p>
+
+    <button onclick="testFetch()">Fetch Data (Tháng 1)</button>
+    <div id="status"></div>
+
+    <script>
+        // ⚠️ PASTE YOUR SINGLE WEB APP URL HERE:
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwrESmHffRNZvxjkqDpOlOMPvM-CjyLvzhfHOzNGpVheN4eWlBvhUbLKLVGw59pCNk/exec";
+
+        async function testFetch() {
+            const statusText = document.getElementById('status');
+            const targetMonth = 1; // You can change this to 2, 3, etc. to test different tabs
+
+            statusText.innerText = "Fetching data... please wait.";
+            statusText.style.color = "blue";
+            console.log(`📡 Sending request to: ${APPS_SCRIPT_URL}?month=${targetMonth}`);
+
+            try {
+                // Call the API
+                const response = await fetch(`${APPS_SCRIPT_URL}?month=${targetMonth}`);
+
+                // Check if the network request was successful
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                // Parse the JSON
+                const data = await response.json();
+
+                statusText.innerText = "✅ Success! Check the Console.";
+                statusText.style.color = "green";
+
+                // Print the results to the console so you can inspect them
+                console.log("✅ DATA FETCHED SUCCESSFULLY!");
+                console.log("📦 Full Data Object:", data);
+
+                console.log("This is data for Doanh Thu")
+                console.table(data.raw); // Prints Doanh Thu as a neat table
+                console.log("This is data for ads")
+                console.table(data.ads); // Prints Ads as a neat table
+                console.log("This is data for Marketing");
+                console.table(data.marketing); // Prints Marketing as a neat table
+
+            } catch (error) {
+                statusText.innerText = "❌ Failed! Check the Console for errors.";
+                statusText.style.color = "red";
+                console.error("❌ ERROR DETAILS:", error);
+            }
+        }
+
+        function testMyScript() {
+            try {
+                // Simulate the dashboard asking for Month 1
+                const mockRequest = { parameter: { month: "1" } };
+                const result = doGet(mockRequest);
+                Logger.log("✅ SUCCESS! Output:");
+                Logger.log(result.getContent());
+            } catch (error) {
+                Logger.log("❌ CRASHED! The exact error is:");
+                Logger.log(error.toString());
+            }
+        }
+    </script>
+</body>
+
+</html>
