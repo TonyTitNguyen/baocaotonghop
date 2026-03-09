@@ -17,6 +17,11 @@ function renderMainChart(dailyData, month, year) {
         }
     });
 
+    const tbData = new Array(daysInMonth).fill(0);
+    for (let i = 0; i < daysInMonth; i++) {
+        tbData[i] = custData[i] > 0 ? Math.round(revData[i] / custData[i]) : 0;
+    }
+
     const gradient = ctx.createLinearGradient(0, 0, 0, 400);
     gradient.addColorStop(0, 'rgba(67, 94, 1, 0.3)');
     gradient.addColorStop(1, 'rgba(67, 94, 1, 0)');
@@ -29,11 +34,15 @@ function renderMainChart(dailyData, month, year) {
             datasets: [
                 {
                     label: 'Doanh Thu', data: revData, borderColor: '#435E01',
-                    backgroundColor: gradient, fill: true, tension: 0.4, yAxisID: 'y'
+                    backgroundColor: gradient, fill: true, tension: 0.4, yAxisID: 'y', order: 2
+                },
+                {
+                    label: 'TB Bill', data: tbData, type: 'line', borderColor: '#D4AF37', borderDash: [5, 5],
+                    backgroundColor: 'transparent', fill: false, tension: 0.4, yAxisID: 'y2', order: 1
                 },
                 {
                     label: 'Khách', data: custData, type: 'bar',
-                    backgroundColor: 'rgba(34, 197, 94, 0.2)', borderRadius: 4, yAxisID: 'y1'
+                    backgroundColor: 'rgba(34, 197, 94, 0.2)', borderRadius: 4, yAxisID: 'y1', order: 3
                 }
             ]
         },
@@ -43,7 +52,8 @@ function renderMainChart(dailyData, month, year) {
             scales: {
                 x: { grid: { display: false } },
                 y: { type: 'linear', position: 'left', ticks: { callback: v => v / 1000000 + 'M' } },
-                y1: { display: false }
+                y1: { type: 'linear', position: 'right', display: false, grid: { display: false } },
+                y2: { type: 'linear', position: 'right', display: false, grid: { display: false } }
             }
         }
     });
@@ -96,9 +106,13 @@ function renderBranchCards(data) {
                     <span class="text-[10px] font-bold text-zen-tea bg-zen-tea/10 px-2 py-1 rounded uppercase">${item.brand}</span>
                 </div>
                 <div class="flex flex-col gap-1 mb-2">
-                    <div class="flex justify-between items-baseline">
+                    <div class="flex justify-between items-baseline mb-1">
                         <span class="text-gray-500 text-[11px] font-bold uppercase">Doanh thu</span>
                         <span class="text-xl font-extrabold text-zen-dark">${new Intl.NumberFormat('vi-VN').format(item.revenue)}</span>
+                    </div>
+                    <div class="flex justify-between items-baseline">
+                        <span class="text-gray-500 text-[11px] font-bold uppercase">Mục tiêu</span>
+                        <span class="text-sm font-bold text-gray-500">${new Intl.NumberFormat('vi-VN').format(item.target)}</span>
                     </div>
                 </div>
             </div>

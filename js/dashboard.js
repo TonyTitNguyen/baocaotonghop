@@ -209,3 +209,21 @@ function toggleAIPanel() {
 function closeAIPanel() {
     document.getElementById('aiCommandPanel').classList.remove('ai-panel-open');
 }
+
+// 9. Cầu dao Music
+function toggleMusic() {
+    const audio = document.getElementById('bgMusic');
+    const icon = document.getElementById('musicIcon');
+    if (!audio || !icon) return;
+
+    if (audio.paused) {
+        audio.play().then(() => {
+            icon.setAttribute('data-lucide', 'volume-2');
+            lucide.createIcons();
+        }).catch(err => console.log('Autoplay bị chặn:', err));
+    } else {
+        audio.pause();
+        icon.setAttribute('data-lucide', 'volume-x');
+        lucide.createIcons();
+    }
+}
