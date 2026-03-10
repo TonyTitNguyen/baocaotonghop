@@ -240,13 +240,11 @@ async function handleUserSubmit(forcedText = null) {
     const loadingDiv = renderLoadingState();
 
     try {
-        // [FIX Ở ĐÂY] Dùng hàm parseIntent để soi xem Sếp đang hỏi đích danh tháng mấy
-        const parsed = parseIntent(text);
-        const queryMonth = parsed.monthTo;
-        const queryMonthFrom = parsed.monthFrom;
+        // Dùng hàm parseIntent để soi xem Sếp đang        // Determine months to query
+        const { current: targetCurrentMonth, previous: targetPreviousMonth } = parseIntent(text);
+        let url = `${window.APPS_SCRIPT_URL}?action=chat&q=${encodeURIComponent(text)}&month=${targetCurrentMonth}&year=${currentYear}&token=${window.SECRET_AUTH_TOKEN}`;
 
-        // Truyền chính xác tháng Sếp muốn hỏi lên cho Apps Script
-        const response = await fetch(`${APPS_SCRIPT_URL}?action=chat&q=${encodeURIComponent(text)}&month=${queryMonth}&monthFrom=${queryMonthFrom}&year=${currentYear}`, {
+        const response = await fetch(url, {
             method: 'GET',
             redirect: 'follow'
         });
