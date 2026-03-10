@@ -1,8 +1,9 @@
 // js/dashboard.js
 
 // 1. Khai báo biến trạng thái toàn cục
-let currentMonth = 3;
-let currentYear = 2026;
+const today = new Date();
+let currentMonth = today.getMonth() + 1; // JS getMonth() chạy từ 0-11
+let currentYear = today.getFullYear();
 let currentBrand = 'all';
 
 // 2. Hàm khởi tạo bộ chọn Tháng và Năm
@@ -23,15 +24,14 @@ function initMonthSelector() {
         monthSelect.appendChild(opt);
     }
 
-    // Tạo Option cho Năm (2024 - 2026) -> Bạn có thể mở rộng danh sách này
-    const years = [2024, 2025, 2026];
-    years.forEach(y => {
+    // Tạo Option cho Năm (từ 2024 đến 2050)
+    for (let y = 2024; y <= 2050; y++) {
         const opt = document.createElement('option');
         opt.value = y;
         opt.innerText = `Năm ${y}`;
         if (y === currentYear) opt.selected = true;
         yearSelect.appendChild(opt);
-    });
+    }
 }
 
 // Hàm lắng nghe sự kiện khi Dropdown thay đổi
@@ -290,7 +290,7 @@ window.onload = () => {
     // 1. Khởi tạo UI
     initMonthSelector();
     initRevealObserver();
-    setMonth(3); // Mặc định load tháng 3
+    setMonth(currentMonth); // Mặc định load tháng hiện tại
 
     // 2. Gắn sự kiện cho nút mở Panel AI (Sparkles Icon)
     const aiBtn = document.getElementById('aiPanelToggleBtn');
