@@ -66,14 +66,45 @@ function formatMarkdown(text) {
     const lines = text.split('\n');
     const out = [];
     let inList = false;
+    let tableBuffer = [];
 
     const applyInline = s => s
         .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-zen-dark">$1</strong>')
         .replace(/\*(.*?)\*/g, '<em>$1</em>');
 
+    const flushTable = () => {
+        if (tableBuffer.length === 0) return;
+        const rows = tableBuffer.filter(l => !/^\|[\s:|*-]+\|/.test(l));
+        out.push('<div class="overflow-x-auto my-3"><table class="w-full text-xs border-collapse">');
+        rows.forEach((row, i) => {
+            const cells = row.split('|').slice(1, -1);
+            const tag = i === 0 ? 'th' : 'td';
+            out.push(`<tr class="${i === 0 ? 'bg-zen-bg' : i % 2 === 0 ? 'bg-white' : 'bg-zen-bg/40'}">`);
+            cells.forEach(cell => {
+                out.push(`<${tag} class="px-2 py-1.5 border border-zen-gray/50 ${i === 0 ? 'font-bold text-zen-dark text-left' : 'text-zen-dark/80'}">${applyInline(cell.trim())}</${tag}>`);
+            });
+            out.push('</tr>');
+        });
+        out.push('</table></div>');
+        tableBuffer = [];
+    };
+
     for (const raw of lines) {
         const line = raw.trim();
-        if (/^## /.test(line)) {
+
+        // Table rows
+        if (/^\|.+\|$/.test(line)) {
+            if (inList) { out.push('</ul>'); inList = false; }
+            tableBuffer.push(line);
+            continue;
+        } else if (tableBuffer.length > 0) {
+            flushTable();
+        }
+
+        if (/^---+$/.test(line)) {
+            if (inList) { out.push('</ul>'); inList = false; }
+            out.push('<hr class="border-zen-gray/50 my-3">');
+        } else if (/^## /.test(line)) {
             if (inList) { out.push('</ul>'); inList = false; }
             out.push(`<p class="font-bold text-zen-dark uppercase text-xs tracking-wider mt-4 mb-1">${applyInline(line.slice(3))}</p>`);
         } else if (/^### /.test(line)) {
@@ -82,9 +113,10 @@ function formatMarkdown(text) {
         } else if (/^[*-] /.test(line)) {
             if (!inList) { out.push('<ul class="my-1 space-y-0.5 pl-1">'); inList = true; }
             out.push(`<li class="list-disc ml-4 text-sm leading-relaxed">${applyInline(line.slice(2))}</li>`);
-        } else if (/^\d+\. /.test(line)) {
+        } else if (/^\d+\.\s/.test(line)) {
             if (inList) { out.push('</ul>'); inList = false; }
-            out.push(`<p class="mt-1 text-sm leading-relaxed">${applyInline(line.replace(/^\d+\. /, ''))}</p>`);
+            const m = line.match(/^(\d+)\.\s(.+)$/);
+            if (m) out.push(`<p class="mt-1.5 text-sm leading-relaxed"><span class="font-bold text-zen-dark mr-1">${m[1]}.</span>${applyInline(m[2])}</p>`);
         } else if (line === '') {
             if (inList) { out.push('</ul>'); inList = false; }
             out.push('<div class="mt-2"></div>');
@@ -93,6 +125,7 @@ function formatMarkdown(text) {
             out.push(`<p class="mt-1 text-sm leading-relaxed">${applyInline(line)}</p>`);
         }
     }
+    if (tableBuffer.length > 0) flushTable();
     if (inList) out.push('</ul>');
     return out.join('');
 }
