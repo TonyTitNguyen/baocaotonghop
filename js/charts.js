@@ -198,25 +198,26 @@ function renderBranchCards(data) {
 function renderAdsTable(data) {
     const tbody = document.getElementById('adsTableBody');
     if (!tbody) return;
-    tbody.innerHTML = '';
 
-    // Sort by CIR highest to lowest
     const sorted = [...data].sort((a, b) => b.cir - a.cir);
+    const fmt = new Intl.NumberFormat('vi-VN');
+    const rows = [];
 
     sorted.forEach(item => {
         if (item.ads === 0 && item.revenue === 0) return;
-
-        let cirBadge = item.cir > 30 ?
-            '<span class="px-2 py-1 rounded bg-red-100 text-red-700 text-[10px] font-bold">Báo động</span>' :
-            '<span class="px-2 py-1 rounded bg-zen-tea/10 text-zen-tea text-[10px] font-bold">Tốt</span>';
-
-        tbody.innerHTML += `
+        const isAlert = item.cir > 30;
+        const cirBadge = isAlert
+            ? '<span class="px-2 py-1 rounded bg-red-100 text-red-700 text-[10px] font-bold">Báo động</span>'
+            : '<span class="px-2 py-1 rounded bg-zen-tea/10 text-zen-tea text-[10px] font-bold">Tốt</span>';
+        rows.push(`
             <tr class="border-b border-zen-gray/50 hover:bg-zen-card transition-colors">
                 <td class="py-3 px-2 font-bold text-zen-dark">${item.branch}</td>
-                <td class="py-3 px-2 text-right font-mono">${new Intl.NumberFormat('vi-VN').format(item.ads)}</td>
-                <td class="py-3 px-2 text-right text-gray-400">${new Intl.NumberFormat('vi-VN').format(item.revenue)}</td>
-                <td class="py-3 px-2 text-right font-bold ${item.cir > 30 ? 'text-red-600' : 'text-zen-tea'}">${item.cir.toFixed(1)}%</td>
+                <td class="py-3 px-2 text-right font-mono">${fmt.format(item.ads)}</td>
+                <td class="py-3 px-2 text-right text-gray-400">${fmt.format(item.revenue)}</td>
+                <td class="py-3 px-2 text-right font-bold ${isAlert ? 'text-red-600' : 'text-zen-tea'}">${item.cir.toFixed(1)}%</td>
                 <td class="py-3 px-2 text-right">${cirBadge}</td>
-            </tr>`;
+            </tr>`);
     });
+
+    tbody.innerHTML = rows.join('');
 }
