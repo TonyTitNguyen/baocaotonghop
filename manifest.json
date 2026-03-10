@@ -1,0 +1,17 @@
+{
+    "name": "Báo Cáo Tổng Hợp",
+    "short_name": "Báo Cáo",
+    "description": "Dashboard Báo Cáo Tổng Hợp Doanh Thu & Marketing",
+    "start_url": "./",
+    "display": "standalone",
+    "background_color": "#F7F5F2",
+    "theme_color": "#2A3B00",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "favicon.ico",
+            "sizes": "64x64 32x32 24x24 16x16",
+            "type": "image/x-icon"
+        }
+    ]
+}

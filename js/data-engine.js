@@ -7,21 +7,51 @@ function cleanNumber(str) {
 
 async function loadSpreadsheetData(monthId, yearId) {
     const cacheKey = `${monthId}_${yearId}`;
+
+    // 1. Kiểm tra RAM Cache
     if (DATA_BY_MONTH[cacheKey] && DATA_BY_MONTH[cacheKey].isFetched) return true;
+
+    // 2. Kiểm tra LocalStorage Cache (Nhanh như chớp)
+    const localStoreStr = localStorage.getItem(`TonyTit_Data_${cacheKey}`);
+    if (localStoreStr) {
+        try {
+            DATA_BY_MONTH[cacheKey] = JSON.parse(localStoreStr);
+            DATA_BY_MONTH[cacheKey].isFetched = true;
+
+            // Background fetch để cập nhật số mới từ GG Sheet (Stale-while-revalidate)
+            fetchAndUpdateInBackground(monthId, yearId, cacheKey);
+            return true; // Trả về true ngay lập tức để render UI từ cache
+        } catch (e) { console.error("Cache parse error", e); }
+    }
+
+    // 3. Nếu chưa có bất kỳ Data nào, sẽ phải Fetch (Có thể chờ 2-3s)
+    return await fetchAndUpdateInBackground(monthId, yearId, cacheKey);
+}
+
+// Phân tách Logic gọi API để tái sử dụng
+async function fetchAndUpdateInBackground(monthId, yearId, cacheKey) {
     try {
         const response = await fetch(`${APPS_SCRIPT_URL}?month=${monthId}&year=${yearId}`);
         if (!response.ok) throw new Error("Network error");
         const json = await response.json();
 
-        DATA_BY_MONTH[cacheKey] = {
-            rawJson: json.raw || [],
-            adsJson: json.ads || [],
-            marketingJson: json.marketing || [],
-            isFetched: true
-        };
-        return true;
+        if (json.raw && json.raw.length > 0) {
+            DATA_BY_MONTH[cacheKey] = {
+                rawJson: json.raw || [],
+                adsJson: json.ads || [],
+                marketingJson: json.marketing || [],
+                isFetched: true
+            };
+            // Cất vào tủ lạnh (LocalStorage)
+            localStorage.setItem(`TonyTit_Data_${cacheKey}`, JSON.stringify(DATA_BY_MONTH[cacheKey]));
+
+            // (Tùy chọn) Bắn ra sự kiện nếu cần Reload nhẹ UI
+            window.dispatchEvent(new CustomEvent('dashboardDataRefreshed', { detail: { month: monthId, year: yearId } }));
+            return true;
+        }
+        return false;
     } catch (e) {
-        console.error("Fetch failed:", e);
+        console.error("Background Fetch failed:", e);
         return false;
     }
 }

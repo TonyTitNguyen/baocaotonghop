@@ -70,6 +70,13 @@ async function setMonth(month) {
     titleEl.innerHTML = `Đang tải T${month}... <i data-lucide="loader-2" class="w-4 h-4 inline animate-spin"></i>`;
     if (window.lucide) lucide.createIcons();
 
+    // 2. Logic cập nhật dữ liệu
+    console.log(`Loading data for: Tháng ${month} Năm ${currentYear}`);
+
+    // Bật hiệu ứng Skeleton Loading
+    const homeSection = document.getElementById('home');
+    if (homeSection) homeSection.classList.add('is-loading');
+
     // Gọi API từ data-engine.js
     const success = await loadSpreadsheetData(month, currentYear);
     const cacheKey = `${month}_${currentYear}`;
@@ -194,6 +201,12 @@ function updateDashboard() {
     renderBranchCards(unified.sort((a, b) => b.revenue - a.revenue));
     renderAdsTable(unified);
 
+    // Tắt hiệu ứng Skeleton Loading
+    setTimeout(() => {
+        const homeSection = document.getElementById('home');
+        if (homeSection) homeSection.classList.remove('is-loading');
+    }, 100); // Đợi DOM vẽ xong 1 chút mượt mà
+
     if (window.lucide) lucide.createIcons();
 
     // Trigger reveal animations via IntersectionObserver
@@ -295,6 +308,14 @@ window.onload = () => {
     initMonthSelector();
     initRevealObserver();
     setMonth(currentMonth); // Mặc định load tháng hiện tại
+
+    // Gắn sự kiện lắng nghe khi dữ liệu background (stale-while-revalidate) tải xong
+    window.addEventListener('dashboardDataRefreshed', (e) => {
+        if (e.detail.month === currentMonth && e.detail.year === currentYear) {
+            console.log("Background data refreshed! Updating UI...");
+            updateDashboard();
+        }
+    });
 
     // 2. Gắn sự kiện cho nút mở Panel AI (Sparkles Icon)
     const aiBtn = document.getElementById('aiPanelToggleBtn');
