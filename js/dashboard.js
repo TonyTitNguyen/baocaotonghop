@@ -74,11 +74,11 @@ async function setMonth(month) {
         document.querySelectorAll('.section-to-hide').forEach(el => el.style.display = 'block');
         titleEl.innerHTML = `Tổng Quan Tháng <span id="displayMonth">${month}</span>/<span id="displayYear">${currentYear}</span>`;
         updateDashboard();
-        
+
         // --- CHẠY NGẦM GỌI GEMINI ---
         // Gọi thẳng AI để lấy nhận định thật
         setTimeout(() => fetchAISummary(month, currentYear), 500);
-        
+
         // Cập nhật Lệnh Đề Xuất tĩnh theo tháng
         if (typeof updateStaticSuggestions === 'function') updateStaticSuggestions(month);
     }
@@ -89,28 +89,84 @@ function fetchAISummary(month, year) {
     const consultantBox = document.getElementById('consultant-content');
     if (!consultantBox) return;
 
-    // Hiển thị trạng thái đang tải
-    consultantBox.innerHTML = `<p class="text-gray-500 italic flex items-center gap-2"><i data-lucide="loader-2" class="w-4 h-4 animate-spin text-zen-tea"></i> Trợ lý AI đang tư duy...</p>`;
-    if (window.lucide) lucide.createIcons();
+    const summaryHTML = `
+        <div class="space-y-4 text-sm text-zen-dark/80">
+            <h4 class="font-bold text-base text-zen-dark uppercase mb-2">TÓM TẮT PHÂN TÍCH DOANH THU CÁC CƠ SỞ</h4>
+            
+            <div>
+                <p class="font-bold text-zen-tea">1. Xã Đàn – Top 1 hệ thống</p>
+                <ul class="list-disc pl-5 mt-1 space-y-1">
+                    <li><span class="font-semibold">Doanh số:</span> 377.280.000đ</li>
+                    <li><span class="font-semibold">TBB:</span> 8.763.000đ | Thấp nhất: 1.310.000đ (1 ngày)</li>
+                    <li>→ Hiệu suất bán hàng ổn định, năng lực chuyển đổi khách tốt.</li>
+                </ul>
+            </div>
 
-    const prompt = `Viết 1 đoạn tóm tắt Góc Nhìn Chiến Lược gọn gàng (không quá 4 dòng) dựa trên số liệu của tháng này. Trình bày dưới dạng gạch đầu dòng ngắn gọn. KHÔNG thêm các câu chào hỏi thừa thãi.`;
-    
-    fetch(`${APPS_SCRIPT_URL}?action=chat&q=${encodeURIComponent(prompt)}&month=${month}&year=${year}`, {
-        method: 'GET',
-        redirect: 'follow'
-    })
-    .then(res => {
-        if (!res.ok) throw new Error("API Error");
-        return res.text();
-    })
-    .then(aiText => {
-        // Ghi đè AI Summary lên trên màn hình loading
-        consultantBox.innerHTML = typeof formatMarkdown === 'function' ? formatMarkdown(aiText) : aiText;
-    })
-    .catch(err => {
-        console.error("Lỗi khi load AI Summary tĩnh:", err);
-        consultantBox.innerHTML = `<p class="text-red-500 text-xs">Không thể kết nối với AI lúc này.</p>`;
-    });
+            <div>
+                <p class="font-bold text-zen-tea">2. Cầu Giấy</p>
+                <ul class="list-disc pl-5 mt-1 space-y-1">
+                    <li><span class="font-semibold">Doanh số:</span> 218.448.000đ | 64 khách (cao nhất hệ thống)</li>
+                    <li><span class="font-semibold">TBB:</span> 1.083.000đ – 19.500.000đ | 3 ngày TBB thấp</li>
+                    <li>→ Nguồn khách tốt, cần chuẩn hóa quy trình tư vấn để tối ưu chuyển đổi.</li>
+                </ul>
+            </div>
+
+            <div>
+                <p class="font-bold text-zen-tea">3. Hà Đông</p>
+                <ul class="list-disc pl-5 mt-1 space-y-1">
+                    <li><span class="font-semibold">Doanh số:</span> 224.198.000đ | 54 khách</li>
+                    <li><span class="font-semibold">TBB:</span> 1.100.000đ – 14.100.000đ</li>
+                    <li>→ Doanh thu phụ thuộc mạnh vào quản lý Kim Hà, cần nhân rộng năng lực bán cho đội ngũ.</li>
+                </ul>
+            </div>
+
+            <div>
+                <p class="font-bold text-zen-tea">4. Long Biên – Điểm sáng tăng trưởng</p>
+                <ul class="list-disc pl-5 mt-1 space-y-1">
+                    <li>54 khách đến cơ sở</li>
+                    <li><span class="font-semibold">TBB cao:</span> 16.450.000đ (5/3) và 10.120.000đ (7/3)</li>
+                    <li><span class="font-semibold">Thấp nhất:</span> 1.160.000đ, chỉ 2 ngày &lt; 2.5tr</li>
+                    <li>→ Cho thấy khả năng bán gói giá trị cao và tư duy kinh doanh đang cải thiện mạnh.</li>
+                    <li>→ Đây là tín hiệu tích cực về năng lực khai thác giá trị khách hàng và hiệu suất bán hàng, rất đáng ghi nhận.</li>
+                </ul>
+            </div>
+
+            <div>
+                <p class="font-bold text-zen-tea">5. Hải Phòng</p>
+                <ul class="list-disc pl-5 mt-1 space-y-1">
+                    <li><span class="font-semibold">Doanh số:</span> 111.599.000đ | 40 khách</li>
+                    <li><span class="font-semibold">TBB:</span> 1.500.000đ – 7.450.000đ</li>
+                    <li>→ Mức chi tiêu còn thấp, cần tăng upsell và bán liệu trình dài hạn.</li>
+                </ul>
+            </div>
+
+            <div>
+                <p class="font-bold text-zen-tea">6. ADV</p>
+                <ul class="list-disc pl-5 mt-1 space-y-1">
+                    <li><span class="font-semibold">Doanh số:</span> 55.500.000đ</li>
+                    <li><span class="font-semibold">TBB:</span> 875.000đ – 19.000.000đ</li>
+                    <li>→ Hiệu suất biến động lớn → cần chuẩn hóa kịch bản tư vấn và phễu bán hàng.</li>
+                </ul>
+            </div>
+
+            <div>
+                <p class="font-bold text-zen-tea">7. CMT8</p>
+                <ul class="list-disc pl-5 mt-1 space-y-1">
+                    <li><span class="font-semibold">Doanh số:</span> 55.800.000đ</li>
+                    <li><span class="font-semibold">TBB:</span> 500.000đ – 14.000.000đ</li>
+                    <li>→ Hiệu suất thấp → cần rà soát tệp khách, đào tạo lại kỹ năng tư vấn và upsell.</li>
+                </ul>
+            </div>
+
+            <div class="mt-4 p-4 bg-zen-sage/10 rounded-xl border border-zen-sage/20 shadow-sm">
+                <p class="font-bold text-zen-dark flex items-center gap-2"><i data-lucide="target" class="w-4 h-4"></i> Định hướng chung:</p>
+                <p class="mt-2 text-zen-dark/90 font-medium">✨ Chuẩn hóa quy trình tư vấn – phễu sản phẩm – KPI TBB tối thiểu 3–4 triệu/bill để nâng hiệu suất toàn hệ thống.</p>
+            </div>
+        </div>
+    `;
+
+    consultantBox.innerHTML = summaryHTML;
+    if (window.lucide) lucide.createIcons();
 }
 
 // 5. Hàm cập nhật toàn bộ giao diện
