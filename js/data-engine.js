@@ -26,6 +26,18 @@ async function loadSpreadsheetData(monthId, yearId) {
     }
 }
 
+// Hàm tải trước (preload) dữ liệu của tháng trước và tháng sau
+function preloadAdjacentMonths(month, year) {
+    const prevMonth = month === 1 ? 12 : month - 1;
+    const prevYear = month === 1 ? year - 1 : year;
+    const nextMonth = month === 12 ? 1 : month + 1;
+    const nextYear = month === 12 ? year + 1 : year;
+
+    // Gọi tải ngầm không await để không block UI chính
+    loadSpreadsheetData(prevMonth, prevYear).catch(() => { });
+    loadSpreadsheetData(nextMonth, nextYear).catch(() => { });
+}
+
 function parseRawData(rawArray) {
     const data = [];
     rawArray.forEach(row => {

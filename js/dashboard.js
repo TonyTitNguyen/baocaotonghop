@@ -116,6 +116,10 @@ async function setMonth(month) {
 
         // Cập nhật Lệnh Đề Xuất tĩnh theo tháng
         if (typeof updateStaticSuggestions === 'function') updateStaticSuggestions(month);
+
+        // --- PRELOAD DỮ LIỆU ---
+        // Tải trước dữ liệu tháng trước & tháng sau để lần ấn tiếp theo không bị delay
+        if (typeof preloadAdjacentMonths === 'function') setTimeout(() => preloadAdjacentMonths(month, currentYear), 1500);
     }
 }
 
