@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tonytit-dashboard-v3';
+const CACHE_NAME = 'dashboard-cache-v4';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
