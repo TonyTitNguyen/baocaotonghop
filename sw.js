@@ -61,8 +61,11 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
         fetch(event.request)
             .then((response) => {
-                // Chỉ cache khi response THÀNH CÔNG (tránh cache trang lỗi 404/500 vĩnh viễn)
-                if (response.ok) {
+                // Chỉ cache response 200 đầy đủ:
+                // - Tránh cache lỗi 404/500 vĩnh viễn
+                // - Tránh cache 206 Partial Content (dùng cho audio range request như 1.mp3)
+                //   vì Cache API không hỗ trợ lưu partial response
+                if (response.status === 200) {
                     const resClone = response.clone();
                     caches.open(CACHE_NAME).then((cache) => {
                         cache.put(event.request, resClone);
