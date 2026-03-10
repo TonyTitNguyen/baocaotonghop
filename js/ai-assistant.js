@@ -39,7 +39,7 @@ function updateStaticSuggestions(month) {
     const suggestions = [
         `Chi phí ads cao nhất T${month}?`,
         `So sánh KPI T${prevMonth} & T${month}`,
-        "Cơ sở nào đông khách nhất?"
+        `Cơ sở nào đông khách nhất Tháng ${month}?`
     ];
 
     suggestionsArea.innerHTML = suggestions.map(s => `
@@ -61,15 +61,73 @@ function formatMetric(val, metric) {
     return new Intl.NumberFormat('vi-VN').format(Math.round(val));
 }
 
-// [ĐÃ TỐI ƯU] Nâng cấp Markdown để xử lý list gạch đầu dòng từ Gemini
 function formatMarkdown(text) {
     if (!text) return "";
-    return text
-        .replace(/\*\*(.*?)\*\*/g, '<strong class="text-zen-dark">$1</strong>') // In đậm
-        .replace(/(?:^|\n)\* (.*?)(?=\n|$)/g, '<li class="ml-4 list-disc mt-1">$1</li>') // List dùng hoa thị
-        .replace(/(?:^|\n)- (.*?)(?=\n|$)/g, '<li class="ml-4 list-disc mt-1">$1</li>') // List dùng gạch ngang
-        .replace(/\*(.*?)\*/g, '<em>$1</em>') // In nghiêng
-        .replace(/\n/g, '<br>'); // Xuống dòng
+    const lines = text.split('\n');
+    const out = [];
+    let inList = false;
+    let tableBuffer = [];
+
+    const applyInline = s => s
+        .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-zen-dark">$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+    const flushTable = () => {
+        if (tableBuffer.length === 0) return;
+        const rows = tableBuffer.filter(l => !/^\|[\s:|*-]+\|/.test(l));
+        out.push('<div class="overflow-x-auto my-3"><table class="w-full text-xs border-collapse">');
+        rows.forEach((row, i) => {
+            const cells = row.split('|').slice(1, -1);
+            const tag = i === 0 ? 'th' : 'td';
+            out.push(`<tr class="${i === 0 ? 'bg-zen-bg' : i % 2 === 0 ? 'bg-white' : 'bg-zen-bg/40'}">`);
+            cells.forEach(cell => {
+                out.push(`<${tag} class="px-2 py-1.5 border border-zen-gray/50 ${i === 0 ? 'font-bold text-zen-dark text-left' : 'text-zen-dark/80'}">${applyInline(cell.trim())}</${tag}>`);
+            });
+            out.push('</tr>');
+        });
+        out.push('</table></div>');
+        tableBuffer = [];
+    };
+
+    for (const raw of lines) {
+        const line = raw.trim();
+
+        // Table rows
+        if (/^\|.+\|$/.test(line)) {
+            if (inList) { out.push('</ul>'); inList = false; }
+            tableBuffer.push(line);
+            continue;
+        } else if (tableBuffer.length > 0) {
+            flushTable();
+        }
+
+        if (/^---+$/.test(line)) {
+            if (inList) { out.push('</ul>'); inList = false; }
+            out.push('<hr class="border-zen-gray/50 my-3">');
+        } else if (/^## /.test(line)) {
+            if (inList) { out.push('</ul>'); inList = false; }
+            out.push(`<p class="font-bold text-zen-dark uppercase text-xs tracking-wider mt-4 mb-1">${applyInline(line.slice(3))}</p>`);
+        } else if (/^### /.test(line)) {
+            if (inList) { out.push('</ul>'); inList = false; }
+            out.push(`<p class="font-bold text-zen-tea mt-3 mb-0.5 text-sm">${applyInline(line.slice(4))}</p>`);
+        } else if (/^[*-] /.test(line)) {
+            if (!inList) { out.push('<ul class="my-1 space-y-0.5 pl-1">'); inList = true; }
+            out.push(`<li class="list-disc ml-4 text-sm leading-relaxed">${applyInline(line.slice(2))}</li>`);
+        } else if (/^\d+\.\s/.test(line)) {
+            if (inList) { out.push('</ul>'); inList = false; }
+            const m = line.match(/^(\d+)\.\s(.+)$/);
+            if (m) out.push(`<p class="mt-1.5 text-sm leading-relaxed"><span class="font-bold text-zen-dark mr-1">${m[1]}.</span>${applyInline(m[2])}</p>`);
+        } else if (line === '') {
+            if (inList) { out.push('</ul>'); inList = false; }
+            out.push('<div class="mt-2"></div>');
+        } else {
+            if (inList) { out.push('</ul>'); inList = false; }
+            out.push(`<p class="mt-1 text-sm leading-relaxed">${applyInline(line)}</p>`);
+        }
+    }
+    if (tableBuffer.length > 0) flushTable();
+    if (inList) out.push('</ul>');
+    return out.join('');
 }
 
 // 2. Render tin nhắn AI UI
@@ -135,9 +193,23 @@ function renderLoadingState() {
     return div;
 }
 
-// 3. Xử lý khi Sếp nhấn gửi
+// 3. Cache với giới hạn kích thước (max 50 entries, FIFO eviction)
 const aiMemoryCache = {};
-let isAILoading = false; // [ĐÃ TỐI ƯU] Khóa để chống Spam Click
+const AI_CACHE_MAX = 50;
+const _aiCacheOrder = [];
+
+function setCacheEntry(key, value) {
+    if (!aiMemoryCache[key]) {
+        _aiCacheOrder.push(key);
+        if (_aiCacheOrder.length > AI_CACHE_MAX) {
+            const oldest = _aiCacheOrder.shift();
+            delete aiMemoryCache[oldest];
+        }
+    }
+    aiMemoryCache[key] = value;
+}
+
+let isAILoading = false;
 
 async function handleUserSubmit(forcedText = null) {
     // Chặn nếu đang xử lý luồng trước đó
@@ -168,7 +240,13 @@ async function handleUserSubmit(forcedText = null) {
     const loadingDiv = renderLoadingState();
 
     try {
-        const response = await fetch(`${APPS_SCRIPT_URL}?action=chat&q=${encodeURIComponent(text)}&month=${currentMonth}&year=${currentYear}`, {
+        // [FIX Ở ĐÂY] Dùng hàm parseIntent để soi xem Sếp đang hỏi đích danh tháng mấy
+        const parsed = parseIntent(text);
+        const queryMonth = parsed.monthTo;
+        const queryMonthFrom = parsed.monthFrom;
+
+        // Truyền chính xác tháng Sếp muốn hỏi lên cho Apps Script
+        const response = await fetch(`${APPS_SCRIPT_URL}?action=chat&q=${encodeURIComponent(text)}&month=${queryMonth}&monthFrom=${queryMonthFrom}&year=${currentYear}`, {
             method: 'GET',
             redirect: 'follow'
         });
@@ -181,16 +259,20 @@ async function handleUserSubmit(forcedText = null) {
 
         if (loadingDiv) loadingDiv.remove();
 
-        // LƯU ĐÁP ÁN MỚI VÀO SỔ TAY ĐỂ DÙNG CHO LẦN SAU
-        if (typeof aiMemoryCache !== 'undefined') {
-            aiMemoryCache[memoryKey] = aiText;
-        }
-
+        // Vẫn in câu trả lời (hoặc câu báo lỗi) ra màn hình để Sếp đọc được
         renderStructuredResponse({ type: 'text', text: aiText });
 
-        // 👉 SỬA LẠI: Chỉ lưu vào Sheet nếu backend xác nhận đây là kết quả mới hỏi Gemini
-        if (typeof logInteractionToSheet === 'function' && aiData.isCached === false) {
-            logInteractionToSheet(text, aiText);
+        // Lọc câu trả lời lỗi để không lưu vào cache
+        const isErrorResponse = /lỗi|error|quota|not found|exception/i.test(aiText);
+
+        if (!isErrorResponse) {
+            // 1. Lưu vào cache (có giới hạn kích thước)
+            setCacheEntry(memoryKey, aiText);
+
+            // 2. Lưu vào Google Sheet (chỉ khi là data mới)
+            if (typeof logInteractionToSheet === 'function' && aiData.isCached === false) {
+                logInteractionToSheet(text, aiText);
+            }
         }
     } catch (e) {
         console.error(e);
