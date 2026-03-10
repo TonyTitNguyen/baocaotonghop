@@ -44,7 +44,7 @@ function updateStaticSuggestions(month) {
         `So sánh KPI T${prevMonth} & T${month}`,
         "Cơ sở nào đông khách nhất?"
     ];
-    
+
     suggestionsArea.innerHTML = suggestions.map(s => `
         <button onclick="handleUserSubmit('${s}')" class="shrink-0 px-3 py-1.5 bg-zen-bg border border-zen-gray text-xs rounded-lg hover:border-zen-tea hover:text-zen-tea transition-colors whitespace-nowrap">
             ${s}
@@ -150,6 +150,9 @@ function renderLoadingState() {
 }
 
 // 3. Xử lý khi Sếp nhấn gửi
+// Tạo một cuốn sổ tay (Object) để lưu trữ trí nhớ của AI
+const aiMemoryCache = {};
+
 async function handleUserSubmit(forcedText = null) {
     const inputEl = document.getElementById('aiInput');
     const text = forcedText || inputEl.value.trim();
@@ -158,13 +161,27 @@ async function handleUserSubmit(forcedText = null) {
     if (inputEl) inputEl.value = '';
     renderUserMessage(text);
 
+    // TẠO CHÌA KHÓA TÌM KIẾM: Ghép câu hỏi + tháng + năm 
+    // Tránh việc Sếp hỏi "Cơ sở tốt nhất?" ở tháng 1 nhưng nó lại lấy đáp án của tháng 2
+    const memoryKey = `${text}_${currentMonth}_${currentYear}`;
+
+    // 1. KIỂM TRA TRÍ NHỚ TRƯỚC TIÊN
+    if (aiMemoryCache[memoryKey]) {
+        // Nếu đã từng hỏi câu này rồi -> Lấy đáp án từ sổ tay ra dùng luôn, KHÔNG GỌI GEMINI NỮA!
+        renderStructuredResponse({
+            type: 'text',
+            text: aiMemoryCache[memoryKey]
+        });
+        return; // Dừng hàm tại đây
+    }
+
+    // 2. NẾU CHƯA CÓ TRONG TRÍ NHỚ THÌ MỚI ĐI HỎI GEMINI
     const loadingDiv = renderLoadingState();
 
     try {
-        // Gọi Apps Script với method GET
         const response = await fetch(`${APPS_SCRIPT_URL}?action=chat&q=${encodeURIComponent(text)}&month=${currentMonth}&year=${currentYear}`, {
             method: 'GET',
-            redirect: 'follow' // Quan trọng để tránh lỗi CORS do chuyển hướng
+            redirect: 'follow'
         });
 
         if (!response.ok) throw new Error("Mạng hoặc máy chủ gặp sự cố");
@@ -172,6 +189,9 @@ async function handleUserSubmit(forcedText = null) {
         const aiText = await response.text();
 
         loadingDiv.remove();
+
+        // LƯU ĐÁP ÁN MỚI VÀO SỔ TAY ĐỂ DÙNG CHO LẦN SAU
+        aiMemoryCache[memoryKey] = aiText;
 
         renderStructuredResponse({
             type: 'text',
