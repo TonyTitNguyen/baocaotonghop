@@ -1,13 +1,13 @@
-const CACHE_NAME = 'tonytit-dashboard-v1';
+const CACHE_NAME = 'tonytit-dashboard-v3';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
     './styles.css',
-    './js/config.js',
-    './js/data-engine.js',
-    './js/charts.js',
-    './js/dashboard.js',
-    './js/ai-assistant.js',
+    './js/config.min.js',
+    './js/data-engine.min.js',
+    './js/charts.min.js',
+    './js/dashboard.min.js',
+    './js/ai-assistant.min.js',
     './manifest.json',
     './libs/tailwindcss.js',
     './libs/chart.js',
@@ -20,10 +20,15 @@ self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
-                return cache.addAll(ASSETS_TO_CACHE);
+                // Cache từng file riêng lẻ: 1 file lỗi không làm hỏng cả batch
+                return Promise.allSettled(
+                    ASSETS_TO_CACHE.map(url =>
+                        cache.add(url).catch(err => console.warn(`[SW] Không cache được ${url}:`, err))
+                    )
+                );
             })
+            .then(() => self.skipWaiting()) // skipWaiting SAU KHI cache xong, không phải trước
     );
-    self.skipWaiting();
 });
 
 // Activate Event - Clean Up Old Caches
@@ -45,8 +50,10 @@ self.addEventListener('activate', (event) => {
 
 // Fetch Event - Network First Strategy with Fallback to Cache
 self.addEventListener('fetch', (event) => {
-    // Bỏ qua các request lấy dữ liệu Spreadsheet Google (nó đã có cơ chế lưu cache riêng)
-    if (event.request.url.includes('script.google.com')) {
+    // Bỏ qua tất cả các request đến API ngoài (Vercel proxy, Google Script)
+    // Các API này có cơ chế cache riêng trong app, SW không nên can thiệp
+    const url = event.request.url;
+    if (url.includes('script.google.com') || url.includes('vercel.app') || url.includes('/api')) {
         return;
     }
 
@@ -54,11 +61,13 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
         fetch(event.request)
             .then((response) => {
-                // Cập nhật ngầm lại cache cho lần sau nếu tải thành công
-                const resClone = response.clone();
-                caches.open(CACHE_NAME).then((cache) => {
-                    cache.put(event.request, resClone);
-                });
+                // Chỉ cache khi response THÀNH CÔNG (tránh cache trang lỗi 404/500 vĩnh viễn)
+                if (response.ok) {
+                    const resClone = response.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(event.request, resClone);
+                    });
+                }
                 return response;
             })
             .catch(() => {

@@ -1,0 +1,14 @@
+{
+    "name": "tonytit-dashboard-api",
+    "version": "1.0.0",
+    "description": "Secure Proxy API for TonyTit Dashboard",
+    "main": "api/index.js",
+    "scripts": {
+        "start": "node api/index.js"
+    },
+    "dependencies": {
+        "cors": "^2.8.5",
+        "dotenv": "^17.3.1",
+        "node-fetch": "^3.3.2"
+    }
+}

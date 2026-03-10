@@ -298,11 +298,34 @@
             }
         }
     </script>
-    <script src="js/config.js"></script>
-    <script src="js/data-engine.js"></script>
-    <script src="js/charts.js"></script>
-    <script src="js/dashboard.js"></script>
-    <script src="js/ai-assistant.js"></script>
+    <script src="js/config.min.js"></script>
+    <script src="js/data-engine.min.js"></script>
+    <script src="js/charts.min.js"></script>
+    <script src="js/dashboard.min.js"></script>
+    <script src="js/ai-assistant.min.js"></script>
+
+    <!-- Cấp độ 1: Ngăn chặn thao tác soi mã nguồn cơ bản -->
+    <script>
+        // Chặn chuột phải
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        // Chặn các phím tắt F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+        document.addEventListener('keydown', function (e) {
+            if (
+                e.key === 'F12' ||
+                (e.ctrlKey && e.shiftKey && e.key === 'I') ||
+                (e.ctrlKey && e.shiftKey && e.key === 'J') ||
+                (e.ctrlKey && e.key === 'U') ||
+                (e.metaKey && e.altKey && e.key === 'I') || // Mac Cmd+Option+I
+                (e.metaKey && e.altKey && e.key === 'J') || // Mac Cmd+Option+J
+                (e.metaKey && e.key === 'U')                // Mac Cmd+U
+            ) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    </script>
+
     <!-- PWA Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {

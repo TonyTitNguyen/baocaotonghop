@@ -152,7 +152,7 @@ async function fetchAISummary(month, year) {
     const question = `Phân tích tổng quan kết quả kinh doanh tháng ${month}/${year}: doanh thu, lượng khách, TBB, CIR từng cơ sở. Đưa ra nhận định và đề xuất chiến lược ngắn gọn.`;
 
     try {
-        const response = await fetch(`${APPS_SCRIPT_URL}?action=chat&q=${encodeURIComponent(question)}&month=${month}&monthFrom=${month}&year=${year}`, {
+        const response = await fetch(`${window.APPS_SCRIPT_URL}?action=chat&q=${encodeURIComponent(question)}&month=${month}&monthFrom=${month}&year=${year}`, {
             method: 'GET',
             redirect: 'follow'
         });
@@ -313,7 +313,6 @@ window.onload = () => {
     // Gắn sự kiện lắng nghe khi dữ liệu background (stale-while-revalidate) tải xong
     window.addEventListener('dashboardDataRefreshed', (e) => {
         if (e.detail.month === currentMonth && e.detail.year === currentYear) {
-            console.log("Background data refreshed! Updating UI...");
             updateDashboard();
         }
     });
@@ -370,7 +369,7 @@ function toggleMusic() {
 
 // 10. Hàm lưu lịch sử
 function logInteractionToSheet(questionText, answerObject) {
-    fetch(APPS_SCRIPT_URL, {
+    fetch(window.APPS_SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
         headers: {

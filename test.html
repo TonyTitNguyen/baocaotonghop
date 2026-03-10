@@ -3,90 +3,133 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Test API Connection</title>
+    <title>Test Vercel Proxy API</title>
     <style>
-        body {
-            font-family: sans-serif;
-            padding: 40px;
-        }
-
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        #status {
-            margin-top: 20px;
-            font-weight: bold;
-        }
+        body { font-family: sans-serif; padding: 40px; max-width: 800px; background: #f7f5f2; }
+        h2 { color: #2A3B00; }
+        .controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
+        input, select { padding: 8px 12px; font-size: 14px; border: 1px solid #ccc; border-radius: 8px; }
+        button { padding: 10px 20px; font-size: 14px; cursor: pointer; border: none; border-radius: 8px; font-weight: bold; }
+        .btn-data { background: #435E01; color: white; }
+        .btn-chat { background: #D4AF37; color: #2A3B00; }
+        .btn-data:hover { background: #2A3B00; }
+        .btn-chat:hover { background: #c09b20; }
+        #status { margin-top: 16px; font-weight: bold; font-size: 15px; }
+        #output { margin-top: 16px; background: white; border: 1px solid #ddd; border-radius: 8px; padding: 20px; white-space: pre-wrap; font-size: 13px; font-family: monospace; max-height: 400px; overflow-y: auto; display: none; }
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-right: 6px; }
+        .tag-ok { background: #d1fae5; color: #065f46; }
+        .tag-err { background: #fee2e2; color: #991b1b; }
+        .tag-info { background: #dbeafe; color: #1e40af; }
     </style>
 </head>
 
 <body>
-    <h2>Google Sheets API Debugger</h2>
-    <p>1. Paste your Web App URL into the code.</p>
-    <p>2. Open your browser's Developer Tools <b>(Press F12, then click the "Console" tab)</b>.</p>
-    <p>3. Click the button below.</p>
+    <h2>🔧 API Tester</h2>
+    <p style="color:#666" id="envLabel"></p>
 
-    <button onclick="testFetch()">Fetch Data (Tháng 1)</button>
+    <div class="controls">
+        <select id="monthInput">
+            <option value="1">Tháng 1</option><option value="2">Tháng 2</option>
+            <option value="3" selected>Tháng 3</option><option value="4">Tháng 4</option>
+            <option value="5">Tháng 5</option><option value="6">Tháng 6</option>
+            <option value="7">Tháng 7</option><option value="8">Tháng 8</option>
+            <option value="9">Tháng 9</option><option value="10">Tháng 10</option>
+            <option value="11">Tháng 11</option><option value="12">Tháng 12</option>
+        </select>
+        <input id="yearInput" type="number" value="2026" min="2024" max="2030" style="width:90px">
+        <button class="btn-data" onclick="testDataFetch()">📊 Test Data Fetch</button>
+        <input id="chatInput" type="text" placeholder="Nhập câu hỏi AI..." style="width:240px">
+        <button class="btn-chat" onclick="testAIChat()">🤖 Test AI Chat</button>
+    </div>
+
     <div id="status"></div>
+    <div id="output"></div>
 
     <script>
-        // ⚠️ PASTE YOUR SINGLE WEB APP URL HERE:
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwrESmHffRNZvxjkqDpOlOMPvM-CjyLvzhfHOzNGpVheN4eWlBvhUbLKLVGw59pCNk/exec";
+        // Tự động chọn API giống config.js: local dev → localhost:3001, production → Vercel
+        const _isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+        const PROXY_URL = _isLocal
+            ? 'http://localhost:3001/api'
+            : 'https://tonytit-dashboard-api.vercel.app/api';
 
-        async function testFetch() {
-            const statusText = document.getElementById('status');
-            const targetMonth = 1; // You can change this to 2, 3, etc. to test different tabs
+        // Hiển thị đang dùng môi trường nào
+        document.getElementById('envLabel').innerHTML = _isLocal
+            ? '🖥️ <b>Local Dev</b> → <code>node api/local-server.js</code> (port 3001) → Google Apps Script'
+            : '☁️ <b>Production</b> → Vercel Proxy → Google Apps Script';
 
-            statusText.innerText = "Fetching data... please wait.";
-            statusText.style.color = "blue";
-            console.log(`📡 Sending request to: ${APPS_SCRIPT_URL}?month=${targetMonth}`);
+        function setStatus(msg, type = 'info') {
+            const el = document.getElementById('status');
+            const tag = type === 'ok' ? '✅ Thành công' : type === 'err' ? '❌ Lỗi' : '⏳ Đang chạy...';
+            const cls = type === 'ok' ? 'tag-ok' : type === 'err' ? 'tag-err' : 'tag-info';
+            el.innerHTML = `<span class="tag ${cls}">${tag}</span> ${msg}`;
+        }
+
+        function showOutput(data) {
+            const el = document.getElementById('output');
+            el.style.display = 'block';
+            el.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+        }
+
+        async function testDataFetch() {
+            const month = document.getElementById('monthInput').value;
+            const year = document.getElementById('yearInput').value;
+            const url = `${PROXY_URL}?month=${month}&year=${year}`;
+
+            setStatus(`Gọi: ${url}`, 'info');
+            console.log('📡 Data Fetch URL:', url);
 
             try {
-                // Call the API
-                const response = await fetch(`${APPS_SCRIPT_URL}?month=${targetMonth}`);
+                const t0 = Date.now();
+                const response = await fetch(url);
+                const elapsed = Date.now() - t0;
 
-                // Check if the network request was successful
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 
-                // Parse the JSON
                 const data = await response.json();
 
-                statusText.innerText = "✅ Success! Check the Console.";
-                statusText.style.color = "green";
+                const rawCount = data.raw?.length ?? 'N/A';
+                const adsCount = data.ads?.length ?? 'N/A';
+                const mktCount = data.marketing?.length ?? 'N/A';
 
-                // Print the results to the console so you can inspect them
-                console.log("✅ DATA FETCHED SUCCESSFULLY!");
-                console.log("📦 Full Data Object:", data);
+                setStatus(`Tháng ${month}/${year} — ${rawCount} dòng raw, ${adsCount} dòng ads, ${mktCount} dòng marketing (${elapsed}ms)`, 'ok');
+                showOutput({ thoiGianMs: elapsed, soLieuDong: { raw: rawCount, ads: adsCount, marketing: mktCount }, cauTrucMau: { raw: data.raw?.[0], ads: data.ads?.[0] } });
 
-                console.log("This is data for Doanh Thu")
-                console.table(data.raw); // Prints Doanh Thu as a neat table
-                console.log("This is data for ads")
-                console.table(data.ads); // Prints Ads as a neat table
-                console.log("This is data for Marketing");
-                console.table(data.marketing); // Prints Marketing as a neat table
-
-            } catch (error) {
-                statusText.innerText = "❌ Failed! Check the Console for errors.";
-                statusText.style.color = "red";
-                console.error("❌ ERROR DETAILS:", error);
+                console.log('✅ DATA OK:', data);
+                console.table(data.raw);
+                console.table(data.ads);
+            } catch (err) {
+                setStatus(err.message, 'err');
+                showOutput('LỖI:\n' + err.message);
+                console.error('❌ Data Fetch Error:', err);
             }
         }
 
-        function testMyScript() {
+        async function testAIChat() {
+            const month = document.getElementById('monthInput').value;
+            const year = document.getElementById('yearInput').value;
+            const q = document.getElementById('chatInput').value.trim() || `Tóm tắt doanh thu tháng ${month}/${year}`;
+            const url = `${PROXY_URL}?action=chat&q=${encodeURIComponent(q)}&month=${month}&monthFrom=${parseInt(month) > 1 ? parseInt(month) - 1 : 12}&year=${year}`;
+
+            setStatus(`Gọi AI: "${q}"`, 'info');
+            console.log('🤖 AI Chat URL:', url);
+
             try {
-                // Simulate the dashboard asking for Month 1
-                const mockRequest = { parameter: { month: "1" } };
-                const result = doGet(mockRequest);
-                Logger.log("✅ SUCCESS! Output:");
-                Logger.log(result.getContent());
-            } catch (error) {
-                Logger.log("❌ CRASHED! The exact error is:");
-                Logger.log(error.toString());
+                const t0 = Date.now();
+                const response = await fetch(url);
+                const elapsed = Date.now() - t0;
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+
+                const data = await response.json();
+                const preview = (data.text || '').substring(0, 120) + '...';
+
+                setStatus(`AI trả lời trong ${elapsed}ms — "${preview}"`, 'ok');
+                showOutput(data.text || JSON.stringify(data, null, 2));
+                console.log('✅ AI RESPONSE:', data);
+            } catch (err) {
+                setStatus(err.message, 'err');
+                showOutput('LỖI:\n' + err.message);
+                console.error('❌ AI Chat Error:', err);
             }
         }
     </script>
