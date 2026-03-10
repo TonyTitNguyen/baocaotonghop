@@ -84,89 +84,45 @@ async function setMonth(month) {
     }
 }
 
-// 4.5 Hàm kết nối AI ngầm
-function fetchAISummary(month, year) {
+// 4.5 Hàm kết nối AI ngầm - gọi Gemini thực tế
+async function fetchAISummary(month, year) {
     const consultantBox = document.getElementById('consultant-content');
     if (!consultantBox) return;
 
-    const summaryHTML = `
-        <div class="space-y-4 text-sm text-zen-dark/80">
-            <h4 class="font-bold text-base text-zen-dark uppercase mb-2">TÓM TẮT PHÂN TÍCH DOANH THU CÁC CƠ SỞ</h4>
-            
-            <div>
-                <p class="font-bold text-zen-tea">1. Xã Đàn – Top 1 hệ thống</p>
-                <ul class="list-disc pl-5 mt-1 space-y-1">
-                    <li><span class="font-semibold">Doanh số:</span> 377.280.000đ</li>
-                    <li><span class="font-semibold">TBB:</span> 8.763.000đ | Thấp nhất: 1.310.000đ (1 ngày)</li>
-                    <li>→ Hiệu suất bán hàng ổn định, năng lực chuyển đổi khách tốt.</li>
-                </ul>
-            </div>
+    const summaryKey = `summary_${month}_${year}`;
 
-            <div>
-                <p class="font-bold text-zen-tea">2. Cầu Giấy</p>
-                <ul class="list-disc pl-5 mt-1 space-y-1">
-                    <li><span class="font-semibold">Doanh số:</span> 218.448.000đ | 64 khách (cao nhất hệ thống)</li>
-                    <li><span class="font-semibold">TBB:</span> 1.083.000đ – 19.500.000đ | 3 ngày TBB thấp</li>
-                    <li>→ Nguồn khách tốt, cần chuẩn hóa quy trình tư vấn để tối ưu chuyển đổi.</li>
-                </ul>
-            </div>
+    // Kiểm tra cache trước
+    if (typeof aiMemoryCache !== 'undefined' && aiMemoryCache[summaryKey]) {
+        consultantBox.innerHTML = aiMemoryCache[summaryKey];
+        if (window.lucide) lucide.createIcons();
+        return;
+    }
 
-            <div>
-                <p class="font-bold text-zen-tea">3. Hà Đông</p>
-                <ul class="list-disc pl-5 mt-1 space-y-1">
-                    <li><span class="font-semibold">Doanh số:</span> 224.198.000đ | 54 khách</li>
-                    <li><span class="font-semibold">TBB:</span> 1.100.000đ – 14.100.000đ</li>
-                    <li>→ Doanh thu phụ thuộc mạnh vào quản lý Kim Hà, cần nhân rộng năng lực bán cho đội ngũ.</li>
-                </ul>
-            </div>
-
-            <div>
-                <p class="font-bold text-zen-tea">4. Long Biên – Điểm sáng tăng trưởng</p>
-                <ul class="list-disc pl-5 mt-1 space-y-1">
-                    <li>54 khách đến cơ sở</li>
-                    <li><span class="font-semibold">TBB cao:</span> 16.450.000đ (5/3) và 10.120.000đ (7/3)</li>
-                    <li><span class="font-semibold">Thấp nhất:</span> 1.160.000đ, chỉ 2 ngày &lt; 2.5tr</li>
-                    <li>→ Cho thấy khả năng bán gói giá trị cao và tư duy kinh doanh đang cải thiện mạnh.</li>
-                    <li>→ Đây là tín hiệu tích cực về năng lực khai thác giá trị khách hàng và hiệu suất bán hàng, rất đáng ghi nhận.</li>
-                </ul>
-            </div>
-
-            <div>
-                <p class="font-bold text-zen-tea">5. Hải Phòng</p>
-                <ul class="list-disc pl-5 mt-1 space-y-1">
-                    <li><span class="font-semibold">Doanh số:</span> 111.599.000đ | 40 khách</li>
-                    <li><span class="font-semibold">TBB:</span> 1.500.000đ – 7.450.000đ</li>
-                    <li>→ Mức chi tiêu còn thấp, cần tăng upsell và bán liệu trình dài hạn.</li>
-                </ul>
-            </div>
-
-            <div>
-                <p class="font-bold text-zen-tea">6. ADV</p>
-                <ul class="list-disc pl-5 mt-1 space-y-1">
-                    <li><span class="font-semibold">Doanh số:</span> 55.500.000đ</li>
-                    <li><span class="font-semibold">TBB:</span> 875.000đ – 19.000.000đ</li>
-                    <li>→ Hiệu suất biến động lớn → cần chuẩn hóa kịch bản tư vấn và phễu bán hàng.</li>
-                </ul>
-            </div>
-
-            <div>
-                <p class="font-bold text-zen-tea">7. CMT8</p>
-                <ul class="list-disc pl-5 mt-1 space-y-1">
-                    <li><span class="font-semibold">Doanh số:</span> 55.800.000đ</li>
-                    <li><span class="font-semibold">TBB:</span> 500.000đ – 14.000.000đ</li>
-                    <li>→ Hiệu suất thấp → cần rà soát tệp khách, đào tạo lại kỹ năng tư vấn và upsell.</li>
-                </ul>
-            </div>
-
-            <div class="mt-4 p-4 bg-zen-sage/10 rounded-xl border border-zen-sage/20 shadow-sm">
-                <p class="font-bold text-zen-dark flex items-center gap-2"><i data-lucide="target" class="w-4 h-4"></i> Định hướng chung:</p>
-                <p class="mt-2 text-zen-dark/90 font-medium">✨ Chuẩn hóa quy trình tư vấn – phễu sản phẩm – KPI TBB tối thiểu 3–4 triệu/bill để nâng hiệu suất toàn hệ thống.</p>
-            </div>
-        </div>
-    `;
-
-    consultantBox.innerHTML = summaryHTML;
+    // Hiện trạng thái loading
+    consultantBox.innerHTML = `<span class="text-xs text-gray-400 italic flex items-center gap-2"><i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i> Đang phân tích dữ liệu tháng ${month}/${year}...</span>`;
     if (window.lucide) lucide.createIcons();
+
+    const question = `Phân tích tổng quan kết quả kinh doanh tháng ${month}/${year}: doanh thu, lượng khách, TBB, CIR từng cơ sở. Đưa ra nhận định và đề xuất chiến lược ngắn gọn.`;
+
+    try {
+        const response = await fetch(`${APPS_SCRIPT_URL}?action=chat&q=${encodeURIComponent(question)}&month=${month}&monthFrom=${month}&year=${year}`, {
+            method: 'GET',
+            redirect: 'follow'
+        });
+        if (!response.ok) throw new Error("Network error");
+        const aiData = await response.json();
+        const html = typeof formatMarkdown === 'function' ? formatMarkdown(aiData.text || '') : (aiData.text || '');
+        consultantBox.innerHTML = `<div class="text-sm text-zen-dark/80 leading-relaxed">${html}</div>`;
+        if (window.lucide) lucide.createIcons();
+
+        // Lưu cache
+        if (typeof aiMemoryCache !== 'undefined' && aiData.text && !aiData.text.includes("Lỗi")) {
+            if (typeof setCacheEntry === 'function') setCacheEntry(summaryKey, consultantBox.innerHTML);
+            else aiMemoryCache[summaryKey] = consultantBox.innerHTML;
+        }
+    } catch (e) {
+        consultantBox.innerHTML = `<p class="text-gray-400 italic text-sm">Không thể tải phân tích AI. Kiểm tra kết nối mạng.</p>`;
+    }
 }
 
 // 5. Hàm cập nhật toàn bộ giao diện
@@ -198,12 +154,8 @@ function updateDashboard() {
 
     if (window.lucide) lucide.createIcons();
 
-    // Trigger reveal animations
-    setTimeout(() => {
-        document.querySelectorAll('.reveal-on-scroll').forEach((el, index) => {
-            setTimeout(() => el.classList.add('is-visible'), index * 50);
-        });
-    }, 100);
+    // Trigger reveal animations via IntersectionObserver
+    observeRevealElements();
 }
 
 // 6. Hàm hiệu ứng nhảy số và Auto-fit chữ
@@ -211,8 +163,6 @@ function animateValue(id, end) {
     const obj = document.getElementById(id);
     if (!obj) return;
     const start = parseInt(obj.innerText.replace(/\D/g, '')) || 0;
-
-    const duration = 800;
     const range = end - start;
     let current = start;
     const steps = 20;
@@ -222,13 +172,12 @@ function animateValue(id, end) {
     const timer = setInterval(() => {
         stepCount++;
         current += stepVal;
-        obj.innerText = new Intl.NumberFormat('vi-VN').format(Math.round(current));
-        autoFitText(obj);
-
         if (stepCount >= steps) {
             obj.innerText = new Intl.NumberFormat('vi-VN').format(end);
             autoFitText(obj);
             clearInterval(timer);
+        } else {
+            obj.innerText = new Intl.NumberFormat('vi-VN').format(Math.round(current));
         }
     }, 30);
 }
@@ -245,12 +194,64 @@ function autoFitText(element) {
     }
 }
 
-// 7. Khởi chạy hệ thống khi trang load xong
-window.onload = () => {
-    console.log("🚀 Dashboard Core Loaded");
+// 7. IntersectionObserver cho hiệu ứng reveal
+let revealObserver = null;
 
+function initRevealObserver() {
+    revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                revealObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
+}
+
+function observeRevealElements() {
+    if (!revealObserver) return;
+    document.querySelectorAll('.reveal-on-scroll').forEach(el => {
+        el.classList.remove('is-visible');
+        revealObserver.observe(el);
+    });
+}
+
+// 8. Phân tích intent tháng từ câu hỏi (dùng cho AI chat)
+function parseIntent(text) {
+    const normalized = text.toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/g, "d").trim();
+    const months = [];
+    const matches = [...normalized.matchAll(/(?:thang|t)[\s]?(\d{1,2})/g)];
+    matches.forEach(m => {
+        const month = parseInt(m[1]);
+        if (month >= 1 && month <= 12) months.push(month);
+    });
+    const monthTo = months.length > 0 ? months[months.length - 1] : currentMonth;
+    const monthFrom = months.length > 1 ? months[0] : (monthTo === 1 ? 12 : monthTo - 1);
+    return { monthFrom, monthTo };
+}
+
+// 9. Cuộn tới và highlight thẻ cơ sở
+function scrollToAndHighlight(branchName) {
+    if (!branchName) return;
+    const cards = document.querySelectorAll('#branchContainer > div');
+    for (const card of cards) {
+        const heading = card.querySelector('h4');
+        if (heading && heading.textContent.trim().toUpperCase().includes(branchName.toUpperCase())) {
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            card.classList.add('ring-2', 'ring-zen-tea', 'ring-offset-2');
+            setTimeout(() => card.classList.remove('ring-2', 'ring-zen-tea', 'ring-offset-2'), 3000);
+            return;
+        }
+    }
+}
+
+// 10. Khởi chạy hệ thống khi trang load xong
+window.onload = () => {
     // 1. Khởi tạo UI
     initMonthSelector();
+    initRevealObserver();
     setMonth(3); // Mặc định load tháng 3
 
     // 2. Gắn sự kiện cho nút mở Panel AI (Sparkles Icon)
@@ -277,23 +278,7 @@ window.onload = () => {
     }
 };
 
-// Đảm bảo hàm này nằm ngoài window.onload để HTML có thể gọi được
-function toggleAIPanel() {
-    const panel = document.getElementById('aiCommandPanel');
-    if (panel) {
-        panel.classList.toggle('ai-panel-open');
-        console.log("Toggle AI Panel");
-    }
-}
-
-function closeAIPanel() {
-    const panel = document.getElementById('aiCommandPanel');
-    if (panel) {
-        panel.classList.remove('ai-panel-open');
-    }
-}
-
-// 8. Các hàm điều khiển Panel AI (Cần để không lỗi onclick)
+// 8. Các hàm điều khiển Panel AI
 function toggleAIPanel() {
     document.getElementById('aiCommandPanel').classList.toggle('ai-panel-open');
 }

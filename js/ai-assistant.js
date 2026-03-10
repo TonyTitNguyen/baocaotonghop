@@ -135,9 +135,23 @@ function renderLoadingState() {
     return div;
 }
 
-// 3. Xử lý khi Sếp nhấn gửi
+// 3. Cache với giới hạn kích thước (max 50 entries, FIFO eviction)
 const aiMemoryCache = {};
-let isAILoading = false; // [ĐÃ TỐI ƯU] Khóa để chống Spam Click
+const AI_CACHE_MAX = 50;
+const _aiCacheOrder = [];
+
+function setCacheEntry(key, value) {
+    if (!aiMemoryCache[key]) {
+        _aiCacheOrder.push(key);
+        if (_aiCacheOrder.length > AI_CACHE_MAX) {
+            const oldest = _aiCacheOrder.shift();
+            delete aiMemoryCache[oldest];
+        }
+    }
+    aiMemoryCache[key] = value;
+}
+
+let isAILoading = false;
 
 async function handleUserSubmit(forcedText = null) {
     // Chặn nếu đang xử lý luồng trước đó
@@ -190,24 +204,17 @@ async function handleUserSubmit(forcedText = null) {
         // Vẫn in câu trả lời (hoặc câu báo lỗi) ra màn hình để Sếp đọc được
         renderStructuredResponse({ type: 'text', text: aiText });
 
-        // 🛡️ BỘ LỌC CHỐNG RÁC: Nhận diện xem Gemini có đang trả về thông báo lỗi không
-        const isErrorResponse = aiText.includes("Lỗi") || aiText.includes("Quota") || aiText.includes("is not found");
+        // Lọc câu trả lời lỗi để không lưu vào cache
+        const isErrorResponse = /lỗi|error|quota|not found|exception/i.test(aiText);
 
-        // NẾU KHÔNG PHẢI LÀ LỖI THÌ MỚI ĐƯỢC PHÉP LƯU
         if (!isErrorResponse) {
-
-            // 1. Lưu vào trí nhớ web (Cache)
-            if (typeof aiMemoryCache !== 'undefined') {
-                aiMemoryCache[memoryKey] = aiText;
-            }
+            // 1. Lưu vào cache (có giới hạn kích thước)
+            setCacheEntry(memoryKey, aiText);
 
             // 2. Lưu vào Google Sheet (chỉ khi là data mới)
             if (typeof logInteractionToSheet === 'function' && aiData.isCached === false) {
                 logInteractionToSheet(text, aiText);
             }
-
-        } else {
-            console.log("🛑 [CHẶN LƯU] Phát hiện câu trả lời là báo lỗi. Hệ thống từ chối lưu vào Cache và Sheet để tránh rác data!");
         }
     } catch (e) {
         console.error(e);
