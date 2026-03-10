@@ -2,7 +2,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const chatArea = document.getElementById('aiChatArea');
     if (chatArea && chatArea.children.length === 0) {
-        // Lời chào mặc định theo yêu cầu của Sếp
         const welcomeDiv = document.createElement('div');
         welcomeDiv.className = "flex gap-3 mb-4 w-full";
         welcomeDiv.innerHTML = `
@@ -24,19 +23,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
-    // Cập nhật Lệnh Đề Xuất (Gợi ý) - Ban đầu để trống, sẽ load động khi chọn Tháng
     const suggestionsArea = document.getElementById('aiSuggestions');
     if (suggestionsArea) {
         suggestionsArea.innerHTML = `<span class="px-3 py-1.5 text-xs text-gray-400 italic flex items-center gap-2"><i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i> Đang tạo lệnh đề xuất...</span>`;
     }
 });
 
-// Hàm cập nhật Lệnh đề xuất tĩnh dựa theo tháng hiện tại
+// Hàm cập nhật Lệnh đề xuất tĩnh
 function updateStaticSuggestions(month) {
     const suggestionsArea = document.getElementById('aiSuggestions');
     if (!suggestionsArea) return;
 
-    // Lấy tháng trước đó (nếu là tháng 1 thì tháng trước là 12)
     const prevMonth = (parseInt(month) === 1) ? 12 : parseInt(month) - 1;
 
     const suggestions = [
@@ -64,26 +61,22 @@ function formatMetric(val, metric) {
     return new Intl.NumberFormat('vi-VN').format(Math.round(val));
 }
 
-// Chuyển đổi Markdown của Gemini (như **in đậm**, *in nghiêng*) thành HTML để hiển thị đẹp hơn
+// [ĐÃ TỐI ƯU] Nâng cấp Markdown để xử lý list gạch đầu dòng từ Gemini
 function formatMarkdown(text) {
     if (!text) return "";
     return text
         .replace(/\*\*(.*?)\*\*/g, '<strong class="text-zen-dark">$1</strong>') // In đậm
+        .replace(/(?:^|\n)\* (.*?)(?=\n|$)/g, '<li class="ml-4 list-disc mt-1">$1</li>') // List dùng hoa thị
+        .replace(/(?:^|\n)- (.*?)(?=\n|$)/g, '<li class="ml-4 list-disc mt-1">$1</li>') // List dùng gạch ngang
         .replace(/\*(.*?)\*/g, '<em>$1</em>') // In nghiêng
         .replace(/\n/g, '<br>'); // Xuống dòng
 }
-
-/* // Note: Vì backend (Apps Script + Gemini) hiện đang xử lý NLP, 
-// hàm parseIntent nội bộ này tạm thời không cần dùng đến nữa.
-function parseIntent(q) { ... } 
-*/
 
 // 2. Render tin nhắn AI UI
 function renderUserMessage(text) {
     const chatArea = document.getElementById('aiChatArea');
     if (!chatArea) return;
 
-    // Bảo mật: Dùng createTextNode để tránh lỗi XSS (mã độc HTML) khi render text của user
     const safeText = document.createTextNode(text).textContent;
     const div = document.createElement('div');
     div.className = "flex gap-2 w-[85%] ml-auto flex-row-reverse mb-4";
@@ -111,7 +104,6 @@ function renderStructuredResponse(data) {
                 <div class="text-xs text-zen-dark/80 italic border-t pt-2">${data.insights[0]}</div>
             </div>`;
     } else {
-        // Áp dụng format markdown cho tin nhắn văn bản thông thường từ Gemini
         const formattedText = formatMarkdown(data.text);
         contentHtml = `<div class="bg-white p-3 rounded-2xl border border-zen-gray/50 text-sm leading-relaxed">${formattedText}</div>`;
     }
@@ -119,9 +111,7 @@ function renderStructuredResponse(data) {
     div.innerHTML = `<div class="w-8 h-8 rounded-full bg-zen-tea/10 flex items-center justify-center shrink-0 border border-zen-tea/20 mt-1"><i data-lucide="bot" class="w-4 h-4 text-zen-tea"></i></div><div class="flex-1">${contentHtml}</div>`;
     chatArea.appendChild(div);
 
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-    }
+    if (typeof lucide !== 'undefined') lucide.createIcons();
     chatArea.scrollTop = chatArea.scrollHeight;
 }
 
@@ -140,47 +130,38 @@ function renderLoadingState() {
         </div>
     `;
     chatArea.appendChild(div);
-
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-    }
-
+    if (typeof lucide !== 'undefined') lucide.createIcons();
     chatArea.scrollTop = chatArea.scrollHeight;
     return div;
 }
 
 // 3. Xử lý khi Sếp nhấn gửi
-// Tạo một cuốn sổ tay (Object) để lưu trữ trí nhớ của AI
 const aiMemoryCache = {};
+let isAILoading = false; // [ĐÃ TỐI ƯU] Khóa để chống Spam Click
 
 async function handleUserSubmit(forcedText = null) {
+    // Chặn nếu đang xử lý luồng trước đó
+    if (isAILoading) return;
+
     const inputEl = document.getElementById('aiInput');
     const text = forcedText || inputEl.value.trim();
     if (!text) return;
 
+    isAILoading = true; // Bật khóa
     if (inputEl) inputEl.value = '';
     renderUserMessage(text);
 
-    // TẠO CHÌA KHÓA TÌM KIẾM: Ghép câu hỏi + tháng + năm 
-    // Tránh việc Sếp hỏi "Cơ sở tốt nhất?" ở tháng 1 nhưng nó lại lấy đáp án của tháng 2
-    const memoryKey = `${text}_${currentMonth}_${currentYear}`;
+    // [ĐÃ TỐI ƯU] Dùng normalizeText để tăng tỷ lệ trúng Cache 
+    // (VD: "Doanh thu?" và "doanh thu " giờ sẽ có chung 1 chìa khóa)
+    const normalizedKeyInput = normalizeText(text);
+    const memoryKey = `${normalizedKeyInput}_${currentMonth}_${currentYear}`;
 
     // 1. KIỂM TRA TRÍ NHỚ TRƯỚC TIÊN
     if (typeof aiMemoryCache !== 'undefined' && aiMemoryCache[memoryKey]) {
-        // Nếu đã từng hỏi câu này rồi -> Lấy đáp án từ sổ tay ra dùng luôn, KHÔNG GỌI GEMINI NỮA!
         const cachedAnswer = aiMemoryCache[memoryKey];
-
-        renderStructuredResponse({
-            type: 'text',
-            text: cachedAnswer
-        });
-
-        // 👉 LƯU LỊCH SỬ CHAT VÀO GOOGLE SHEET (Dữ liệu từ Cache)
-        if (typeof logInteractionToSheet === 'function') {
-            logInteractionToSheet(text, cachedAnswer);
-        }
-
-        return; // Dừng hàm tại đây
+        renderStructuredResponse({ type: 'text', text: cachedAnswer });
+        isAILoading = false; // Mở khóa
+        return;
     }
 
     // 2. NẾU CHƯA CÓ TRONG TRÍ NHỚ THÌ MỚI ĐI HỎI GEMINI
@@ -203,12 +184,9 @@ async function handleUserSubmit(forcedText = null) {
             aiMemoryCache[memoryKey] = aiText;
         }
 
-        renderStructuredResponse({
-            type: 'text',
-            text: aiText
-        });
+        renderStructuredResponse({ type: 'text', text: aiText });
 
-        // 👉 LƯU LỊCH SỬ CHAT VÀO GOOGLE SHEET (Dữ liệu mới)
+        // LƯU LỊCH SỬ CHAT VÀO GOOGLE SHEET (Chỉ dữ liệu mới)
         if (typeof logInteractionToSheet === 'function') {
             logInteractionToSheet(text, aiText);
         }
@@ -220,20 +198,20 @@ async function handleUserSubmit(forcedText = null) {
             type: 'text',
             text: "Lỗi kết nối với trí tuệ nhân tạo Gemini. Sếp kiểm tra lại kết nối mạng hoặc Apps Script nhé!"
         });
+    } finally {
+        isAILoading = false; // Mở khóa dù có lỗi hay thành công
     }
 }
 
-// 4. Global function để gọi từ quick-chips trên Dashboard HTML
+// 4. Global function
 window.executeAIAction = function (actionObjRaw) {
     try {
-        // Đảm bảo parse đúng object được truyền từ HTML attribute onclick
         const action = typeof actionObjRaw === 'string' ? JSON.parse(decodeURIComponent(actionObjRaw)) : actionObjRaw;
         if (!action) return;
 
         if (action.type === 'ask') {
             handleUserSubmit(action.payload);
         } else if (action.type === 'locate_branch') {
-            // (Giữ lại logic này nếu dashboard của bạn vẫn có tính năng bấm nút để cuộn tới nhánh)
             if (action.month && typeof setMonth === 'function' && action.month !== currentMonth) setMonth(action.month);
             if (action.brand && typeof filterBrand === 'function' && action.brand !== currentBrand) filterBrand(action.brand);
             requestAnimationFrame(() => {
