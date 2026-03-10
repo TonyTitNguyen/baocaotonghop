@@ -6,13 +6,14 @@ function cleanNumber(str) {
 }
 
 async function loadSpreadsheetData(monthId, yearId) {
-    if (DATA_BY_MONTH[monthId] && DATA_BY_MONTH[monthId].isFetched) return true;
+    const cacheKey = `${monthId}_${yearId}`;
+    if (DATA_BY_MONTH[cacheKey] && DATA_BY_MONTH[cacheKey].isFetched) return true;
     try {
         const response = await fetch(`${APPS_SCRIPT_URL}?month=${monthId}&year=${yearId}`);
         if (!response.ok) throw new Error("Network error");
         const json = await response.json();
 
-        DATA_BY_MONTH[monthId] = {
+        DATA_BY_MONTH[cacheKey] = {
             rawJson: json.raw || [],
             adsJson: json.ads || [],
             marketingJson: json.marketing || [],
