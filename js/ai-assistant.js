@@ -39,7 +39,7 @@ function updateStaticSuggestions(month) {
     const suggestions = [
         `Chi phí ads cao nhất T${month}?`,
         `So sánh KPI T${prevMonth} & T${month}`,
-        "Cơ sở nào đông khách nhất?"
+        `Cơ sở nào đông khách nhất Tháng ${month}?`
     ];
 
     suggestionsArea.innerHTML = suggestions.map(s => `
@@ -168,7 +168,13 @@ async function handleUserSubmit(forcedText = null) {
     const loadingDiv = renderLoadingState();
 
     try {
-        const response = await fetch(`${APPS_SCRIPT_URL}?action=chat&q=${encodeURIComponent(text)}&month=${currentMonth}&year=${currentYear}`, {
+        // [FIX Ở ĐÂY] Dùng hàm parseIntent để soi xem Sếp đang hỏi đích danh tháng mấy
+        const parsed = parseIntent(text);
+        const queryMonth = parsed.monthTo;
+        const queryMonthFrom = parsed.monthFrom;
+
+        // Truyền chính xác tháng Sếp muốn hỏi lên cho Apps Script
+        const response = await fetch(`${APPS_SCRIPT_URL}?action=chat&q=${encodeURIComponent(text)}&month=${queryMonth}&monthFrom=${queryMonthFrom}&year=${currentYear}`, {
             method: 'GET',
             redirect: 'follow'
         });
