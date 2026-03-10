@@ -187,16 +187,27 @@ async function handleUserSubmit(forcedText = null) {
 
         if (loadingDiv) loadingDiv.remove();
 
-        // LƯU ĐÁP ÁN MỚI VÀO SỔ TAY ĐỂ DÙNG CHO LẦN SAU
-        if (typeof aiMemoryCache !== 'undefined') {
-            aiMemoryCache[memoryKey] = aiText;
-        }
-
+        // Vẫn in câu trả lời (hoặc câu báo lỗi) ra màn hình để Sếp đọc được
         renderStructuredResponse({ type: 'text', text: aiText });
 
-        // 👉 SỬA LẠI: Chỉ lưu vào Sheet nếu backend xác nhận đây là kết quả mới hỏi Gemini
-        if (typeof logInteractionToSheet === 'function' && aiData.isCached === false) {
-            logInteractionToSheet(text, aiText);
+        // 🛡️ BỘ LỌC CHỐNG RÁC: Nhận diện xem Gemini có đang trả về thông báo lỗi không
+        const isErrorResponse = aiText.includes("Lỗi") || aiText.includes("Quota") || aiText.includes("is not found");
+
+        // NẾU KHÔNG PHẢI LÀ LỖI THÌ MỚI ĐƯỢC PHÉP LƯU
+        if (!isErrorResponse) {
+
+            // 1. Lưu vào trí nhớ web (Cache)
+            if (typeof aiMemoryCache !== 'undefined') {
+                aiMemoryCache[memoryKey] = aiText;
+            }
+
+            // 2. Lưu vào Google Sheet (chỉ khi là data mới)
+            if (typeof logInteractionToSheet === 'function' && aiData.isCached === false) {
+                logInteractionToSheet(text, aiText);
+            }
+
+        } else {
+            console.log("🛑 [CHẶN LƯU] Phát hiện câu trả lời là báo lỗi. Hệ thống từ chối lưu vào Cache và Sheet để tránh rác data!");
         }
     } catch (e) {
         console.error(e);
