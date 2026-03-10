@@ -3,10 +3,15 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Test Vercel Proxy API</title>
+    <title>Test API — Local & Vercel</title>
     <style>
-        body { font-family: sans-serif; padding: 40px; max-width: 800px; background: #f7f5f2; }
-        h2 { color: #2A3B00; }
+        body { font-family: sans-serif; padding: 40px; max-width: 860px; background: #f7f5f2; }
+        h2 { color: #2A3B00; margin-bottom: 4px; }
+        .env-toggle { display: flex; gap: 0; margin-bottom: 20px; border-radius: 10px; overflow: hidden; border: 2px solid #2A3B00; width: fit-content; }
+        .env-btn { padding: 9px 22px; font-size: 14px; font-weight: bold; cursor: pointer; border: none; background: #fff; color: #555; transition: all .2s; }
+        .env-btn.active { background: #2A3B00; color: #fff; }
+        .env-btn:first-child { border-right: 2px solid #2A3B00; }
+        .endpoint-url { font-family: monospace; font-size: 12px; color: #888; margin-bottom: 18px; background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 8px 14px; }
         .controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
         input, select { padding: 8px 12px; font-size: 14px; border: 1px solid #ccc; border-radius: 8px; }
         button { padding: 10px 20px; font-size: 14px; cursor: pointer; border: none; border-radius: 8px; font-weight: bold; }
@@ -20,12 +25,27 @@
         .tag-ok { background: #d1fae5; color: #065f46; }
         .tag-err { background: #fee2e2; color: #991b1b; }
         .tag-info { background: #dbeafe; color: #1e40af; }
+        .warning-local { background: #fff7ed; border: 1px solid #fb923c; color: #9a3412; border-radius: 8px; padding: 8px 14px; font-size: 13px; margin-bottom: 16px; display: none; }
     </style>
 </head>
 
 <body>
     <h2>🔧 API Tester</h2>
-    <p style="color:#666" id="envLabel"></p>
+    <p style="color:#888;margin-bottom:16px;font-size:13px">Chọn endpoint để test — có thể test Local hoặc Vercel bất kể đang mở ở đâu</p>
+
+    <!-- Endpoint Toggle -->
+    <div class="env-toggle">
+        <button class="env-btn" id="btn-local" onclick="setEndpoint('local')">🖥️ Local (3001)</button>
+        <button class="env-btn" id="btn-vercel" onclick="setEndpoint('vercel')">☁️ Vercel</button>
+    </div>
+
+    <!-- Current URL preview -->
+    <div class="endpoint-url" id="urlPreview"></div>
+
+    <!-- Warning if picking Local from a non-localhost context -->
+    <div class="warning-local" id="localWarning">
+        ⚠️ Bạn đang mở file này từ xa nhưng chọn Local server — hãy chạy <code>node api/local-server.js</code> trên máy và mở qua <code>http://localhost:8080/test.html</code>
+    </div>
 
     <div class="controls">
         <select id="monthInput">
@@ -46,16 +66,32 @@
     <div id="output"></div>
 
     <script>
-        // Tự động chọn API giống config.js: local dev → localhost:3001, production → Vercel
-        const _isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-        const PROXY_URL = _isLocal
-            ? 'http://localhost:3001/api'
-            : 'https://tonytit-dashboard-api.vercel.app/api';
+        const ENDPOINTS = {
+            local:  'http://localhost:3001/api',
+            vercel: 'https://baocaotonghop-lake.vercel.app/api'
+        };
 
-        // Hiển thị đang dùng môi trường nào
-        document.getElementById('envLabel').innerHTML = _isLocal
-            ? '🖥️ <b>Local Dev</b> → <code>node api/local-server.js</code> (port 3001) → Google Apps Script'
-            : '☁️ <b>Production</b> → Vercel Proxy → Google Apps Script';
+        // Auto-detect default: localhost → local, otherwise → vercel
+        const _isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+        let activeEndpoint = _isLocal ? 'local' : 'vercel';
+
+        function setEndpoint(key) {
+            activeEndpoint = key;
+            document.getElementById('btn-local').classList.toggle('active', key === 'local');
+            document.getElementById('btn-vercel').classList.toggle('active', key === 'vercel');
+            document.getElementById('urlPreview').textContent = `Endpoint: ${ENDPOINTS[key]}`;
+            // Show warning if picking local while not on localhost
+            const showWarn = key === 'local' && !_isLocal;
+            document.getElementById('localWarning').style.display = showWarn ? 'block' : 'none';
+            // Reset output when switching
+            document.getElementById('status').innerHTML = '';
+            document.getElementById('output').style.display = 'none';
+        }
+
+        // Init on load
+        setEndpoint(activeEndpoint);
+
+        function getProxyUrl() { return ENDPOINTS[activeEndpoint]; }
 
         function setStatus(msg, type = 'info') {
             const el = document.getElementById('status');
@@ -72,8 +108,8 @@
 
         async function testDataFetch() {
             const month = document.getElementById('monthInput').value;
-            const year = document.getElementById('yearInput').value;
-            const url = `${PROXY_URL}?month=${month}&year=${year}`;
+            const year  = document.getElementById('yearInput').value;
+            const url   = `${getProxyUrl()}?month=${month}&year=${year}`;
 
             setStatus(`Gọi: ${url}`, 'info');
             console.log('📡 Data Fetch URL:', url);
@@ -106,9 +142,9 @@
 
         async function testAIChat() {
             const month = document.getElementById('monthInput').value;
-            const year = document.getElementById('yearInput').value;
-            const q = document.getElementById('chatInput').value.trim() || `Tóm tắt doanh thu tháng ${month}/${year}`;
-            const url = `${PROXY_URL}?action=chat&q=${encodeURIComponent(q)}&month=${month}&monthFrom=${parseInt(month) > 1 ? parseInt(month) - 1 : 12}&year=${year}`;
+            const year  = document.getElementById('yearInput').value;
+            const q     = document.getElementById('chatInput').value.trim() || `Tóm tắt doanh thu tháng ${month}/${year}`;
+            const url   = `${getProxyUrl()}?action=chat&q=${encodeURIComponent(q)}&month=${month}&monthFrom=${parseInt(month) > 1 ? parseInt(month) - 1 : 12}&year=${year}`;
 
             setStatus(`Gọi AI: "${q}"`, 'info');
             console.log('🤖 AI Chat URL:', url);
