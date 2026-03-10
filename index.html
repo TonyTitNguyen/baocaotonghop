@@ -67,8 +67,19 @@
                     class="px-3 md:px-4 py-2 rounded-xl bg-gradient-to-r from-zen-dark to-zen-sage text-white shadow-sm hover:scale-105 transition-all flex items-center gap-2 font-bold text-xs">
                     <i data-lucide="sparkles" class="w-4 h-4"></i> Assistant
                 </button>
-                <div class="flex items-center gap-1 bg-zen-bg p-1 rounded-xl border border-zen-gray/50"
-                    id="month-selector"></div>
+                <div class="flex items-center gap-2 bg-zen-bg p-1.5 rounded-xl border border-zen-gray/50 shadow-sm"
+                    id="date-selector">
+                    <select id="monthSelect"
+                        class="bg-white border-none text-sm font-bold text-zen-dark rounded-lg py-1 pl-2 pr-6 focus:ring-0 cursor-pointer hover:bg-zen-gray/20 transition-colors"
+                        onchange="handleDateChange()">
+                        <!-- Options sẽ được render bằng JS -->
+                    </select>
+                    <select id="yearSelect"
+                        class="bg-white border-none text-sm font-bold text-zen-dark rounded-lg py-1 pl-2 pr-6 focus:ring-0 cursor-pointer hover:bg-zen-gray/20 transition-colors"
+                        onchange="handleDateChange()">
+                        <!-- Options sẽ được render bằng JS -->
+                    </select>
+                </div>
             </div>
         </header>
 

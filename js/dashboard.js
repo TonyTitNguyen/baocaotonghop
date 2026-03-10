@@ -1,23 +1,48 @@
 // js/dashboard.js
 
 // 1. Khai báo biến trạng thái toàn cục
-let currentMonth = 3;
-let currentYear = 2026;
+const today = new Date();
+let currentMonth = today.getMonth() + 1; // JS getMonth() chạy từ 0-11
+let currentYear = today.getFullYear();
 let currentBrand = 'all';
 
-// 2. Hàm khởi tạo bộ chọn tháng (T1 -> T12)
+// 2. Hàm khởi tạo bộ chọn Tháng và Năm
 function initMonthSelector() {
-    const container = document.getElementById('month-selector');
-    if (!container) return;
-    container.innerHTML = '';
+    const monthSelect = document.getElementById('monthSelect');
+    const yearSelect = document.getElementById('yearSelect');
+    if (!monthSelect || !yearSelect) return;
+
+    monthSelect.innerHTML = '';
+    yearSelect.innerHTML = '';
+
+    // Tạo Option cho Tháng (1-12)
     for (let i = 1; i <= 12; i++) {
-        const btn = document.createElement('button');
-        btn.id = `btn-m${i}`;
-        // Gán class dựa trên tháng đang chọn
-        btn.className = `month-btn px-3 py-1 text-xs font-bold rounded-lg transition-all ${i === currentMonth ? 'bg-zen-tea text-white shadow-sm' : 'text-gray-500 hover:bg-white hover:text-zen-tea'}`;
-        btn.innerText = `T${i}`;
-        btn.onclick = () => setMonth(i);
-        container.appendChild(btn);
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.innerText = `Tháng ${i}`;
+        if (i === currentMonth) opt.selected = true;
+        monthSelect.appendChild(opt);
+    }
+
+    // Tạo Option cho Năm (từ 2024 đến 2050)
+    for (let y = 2024; y <= 2050; y++) {
+        const opt = document.createElement('option');
+        opt.value = y;
+        opt.innerText = `Năm ${y}`;
+        if (y === currentYear) opt.selected = true;
+        yearSelect.appendChild(opt);
+    }
+}
+
+// Hàm lắng nghe sự kiện khi Dropdown thay đổi
+function handleDateChange() {
+    const m = parseInt(document.getElementById('monthSelect').value);
+    const y = parseInt(document.getElementById('yearSelect').value);
+
+    // Nếu có sự thay đổi thực sự
+    if (m !== currentMonth || y !== currentYear) {
+        currentYear = y;
+        setMonth(m);
     }
 }
 
@@ -33,20 +58,13 @@ function filterBrand(brand) {
     updateDashboard();
 }
 
-// 4. Hàm chuyển đổi tháng
+// 4. Hàm chuyển đổi tháng và tải dữ liệu
 async function setMonth(month) {
     currentMonth = month;
 
-    // Cập nhật giao diện nút bấm tháng
-    document.querySelectorAll('.month-btn').forEach((btn, idx) => {
-        if ((idx + 1) === month) {
-            btn.classList.add('bg-zen-tea', 'text-white');
-            btn.classList.remove('text-gray-500');
-        } else {
-            btn.classList.remove('bg-zen-tea', 'text-white');
-            btn.classList.add('text-gray-500');
-        }
-    });
+    // Đồng bộ lại UI Dropdown nếu hàm này được gọi từ nơi khác (ví dụ code cũ)
+    const monthSelect = document.getElementById('monthSelect');
+    if (monthSelect) monthSelect.value = month;
 
     const titleEl = document.getElementById('pageTitle');
     titleEl.innerHTML = `Đang tải T${month}... <i data-lucide="loader-2" class="w-4 h-4 inline animate-spin"></i>`;
@@ -54,10 +72,27 @@ async function setMonth(month) {
 
     // Gọi API từ data-engine.js
     const success = await loadSpreadsheetData(month, currentYear);
-    const monthPack = DATA_BY_MONTH[month];
+    const cacheKey = `${month}_${currentYear}`;
+    const monthPack = DATA_BY_MONTH[cacheKey];
 
-    // Kiểm tra xem có dữ liệu thực tế không (bỏ qua header)
-    const hasData = success && monthPack && monthPack.rawJson && monthPack.rawJson.length > 1;
+    // Kiểm tra xem có dữ liệu thực tế không (phải đúng tháng)
+    let hasData = false;
+    if (success && monthPack && monthPack.rawJson && monthPack.rawJson.length > 1) {
+        // Lấy thử một vài dòng đầu tiên (bỏ qua dòng 0 là header)
+        for (let i = 1; i < Math.min(5, monthPack.rawJson.length); i++) {
+            const cols = Object.values(monthPack.rawJson[i]);
+            if (cols.length >= 3) {
+                const dateStr = String(cols[2]).trim();
+                const parts = dateStr.split('/');
+                if (parts.length >= 2) {
+                    if (parseInt(parts[1]) === month) {
+                        hasData = true;
+                        break;
+                    }
+                }
+            }
+        }
+    }
 
     if (!hasData) {
         // Nếu không có data -> Ẩn các section và báo lỗi
@@ -129,7 +164,8 @@ async function fetchAISummary(month, year) {
 
 // 5. Hàm cập nhật toàn bộ giao diện
 function updateDashboard() {
-    const monthPack = DATA_BY_MONTH[currentMonth];
+    const cacheKey = `${currentMonth}_${currentYear}`;
+    const monthPack = DATA_BY_MONTH[cacheKey];
     if (!monthPack) return;
 
     // Lấy data đã lọc từ data-engine.js
@@ -254,7 +290,7 @@ window.onload = () => {
     // 1. Khởi tạo UI
     initMonthSelector();
     initRevealObserver();
-    setMonth(3); // Mặc định load tháng 3
+    setMonth(currentMonth); // Mặc định load tháng hiện tại
 
     // 2. Gắn sự kiện cho nút mở Panel AI (Sparkles Icon)
     const aiBtn = document.getElementById('aiPanelToggleBtn');
