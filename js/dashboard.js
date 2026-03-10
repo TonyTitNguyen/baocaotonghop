@@ -313,7 +313,6 @@ window.onload = () => {
     // Gắn sự kiện lắng nghe khi dữ liệu background (stale-while-revalidate) tải xong
     window.addEventListener('dashboardDataRefreshed', (e) => {
         if (e.detail.month === currentMonth && e.detail.year === currentYear) {
-            console.log("Background data refreshed! Updating UI...");
             updateDashboard();
         }
     });
@@ -370,7 +369,7 @@ function toggleMusic() {
 
 // 10. Hàm lưu lịch sử
 function logInteractionToSheet(questionText, answerObject) {
-    fetch(APPS_SCRIPT_URL, {
+    fetch(window.APPS_SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
         headers: {
