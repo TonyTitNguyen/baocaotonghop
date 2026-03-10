@@ -318,3 +318,18 @@ function toggleMusic() {
         lucide.createIcons();
     }
 }
+
+// 10. Hàm lưu lịch sử
+function logInteractionToSheet(questionText, answerObject) {
+    fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+            'Content-Type': 'text/plain',
+        },
+        body: JSON.stringify({
+            question: questionText,
+            answer: answerObject
+        })
+    }).catch(e => console.error("Lỗi lưu lịch sử:", e));
+}
