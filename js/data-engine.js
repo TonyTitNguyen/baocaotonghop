@@ -31,7 +31,7 @@ async function loadSpreadsheetData(monthId, yearId) {
 // Phân tách Logic gọi API để tái sử dụng
 async function fetchAndUpdateInBackground(monthId, yearId, cacheKey) {
     try {
-        const response = await fetch(`${APPS_SCRIPT_URL}?month=${monthId}&year=${yearId}`);
+        const response = await fetch(`${window.APPS_SCRIPT_URL}?month=${monthId}&year=${yearId}`);
         if (!response.ok) throw new Error("Network error");
         const json = await response.json();
 

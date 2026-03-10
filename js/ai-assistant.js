@@ -242,7 +242,7 @@ async function handleUserSubmit(forcedText = null) {
     try {
         // Dùng hàm parseIntent để soi xem Sếp đang hỏi đích danh tháng mấy
         const { monthFrom: queryMonthFrom, monthTo: queryMonth } = parseIntent(text);
-        const url = `${window.APPS_SCRIPT_URL}?action=chat&q=${encodeURIComponent(text)}&month=${queryMonth}&monthFrom=${queryMonthFrom}&year=${currentYear}&token=${window.SECRET_AUTH_TOKEN}`;
+        const url = `${window.APPS_SCRIPT_URL}?action=chat&q=${encodeURIComponent(text)}&month=${queryMonth}&monthFrom=${queryMonthFrom}&year=${currentYear}`;
 
         const response = await fetch(url, {
             method: 'GET',
