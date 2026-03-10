@@ -33,7 +33,9 @@ module.exports = async (req, res) => {
         const monthFrom = query.monthFrom || "";
 
         // 4. Xây dựng đường link KÍNH MẬT gửi tới Google
-        let googleApiUrl = `${GOOGLE_APP_SCRIPT_URL}?token=${SECRET_TOKEN}&month=${targetMonth}&year=${targetYear}&action=${action}&q=${encodeURIComponent(q)}&monthFrom=${monthFrom}`;
+        // encodeURIComponent bắt buộc cho token vì token chứa ký tự đặc biệt (&, ?, =, |...)
+        // mà nếu không encode, dấu & trong token sẽ bị hiểu là tham số URL mới → GAS nhận token bị cắt ngắn
+        let googleApiUrl = `${GOOGLE_APP_SCRIPT_URL}?token=${encodeURIComponent(SECRET_TOKEN)}&month=${targetMonth}&year=${targetYear}&action=${action}&q=${encodeURIComponent(q)}&monthFrom=${monthFrom}`;
 
         // 5. Đóng vai Frontend, Server Vercel tự lấy thân mình đi hỏi Google Apps Script
         const googleResponse = await fetch(googleApiUrl);
