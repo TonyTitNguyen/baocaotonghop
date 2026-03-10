@@ -71,7 +71,6 @@ async function setMonth(month) {
     if (window.lucide) lucide.createIcons();
 
     // 2. Logic cập nhật dữ liệu
-    console.log(`Loading data for: Tháng ${month} Năm ${currentYear}`);
 
     // Bật hiệu ứng Skeleton Loading
     const homeSection = document.getElementById('home');
@@ -102,6 +101,8 @@ async function setMonth(month) {
     }
 
     if (!hasData) {
+        // Tắt skeleton dù không có data
+        if (homeSection) homeSection.classList.remove('is-loading');
         // Nếu không có data -> Ẩn các section và báo lỗi
         document.querySelectorAll('.section-to-hide').forEach(el => el.style.display = 'none');
         document.getElementById('consultant-content').innerHTML = `<p class="text-red-500 font-bold">Chưa có dữ liệu cho Tháng ${month}.</p>`;

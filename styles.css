@@ -192,6 +192,15 @@ body {
 /* AI Panel */
 #aiCommandPanel {
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 100vh;      /* Fallback */
+    height: 100dvh;     /* Dynamic viewport height cho mobile */
+}
+
+/* Đảm bảo ô input luôn nằm trên cùng bàn phím iOS */
+@supports (-webkit-touch-callout: none) {
+    #aiCommandPanel {
+        height: -webkit-fill-available;
+    }
 }
 
 .ai-panel-open {
@@ -229,19 +238,4 @@ body {
     border-radius: 50%;
     display: inline-block;
     animation: typing 1.4s infinite ease-in-out;
-}
-
-/* Fix mobile keyboard overlap */
-#aiCommandPanel {
-    height: 100vh;
-    /* Fallback */
-    height: 100dvh;
-    /* Dynamic viewport height cho mobile để tự co lại khi có bàn phím */
-}
-
-/* Đảm bảo ô input luôn nằm trên cùng bàn phím iOS */
-@supports (-webkit-touch-callout: none) {
-    #aiCommandPanel {
-        height: -webkit-fill-available;
-    }
 }

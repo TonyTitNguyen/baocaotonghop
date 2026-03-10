@@ -42,8 +42,12 @@ async function fetchAndUpdateInBackground(monthId, yearId, cacheKey) {
                 marketingJson: json.marketing || [],
                 isFetched: true
             };
-            // Cất vào tủ lạnh (LocalStorage)
-            localStorage.setItem(`TonyTit_Data_${cacheKey}`, JSON.stringify(DATA_BY_MONTH[cacheKey]));
+            // Cất vào tủ lạnh (LocalStorage) — tách try/catch riêng để quota error không ảnh hưởng return value
+            try {
+                localStorage.setItem(`TonyTit_Data_${cacheKey}`, JSON.stringify(DATA_BY_MONTH[cacheKey]));
+            } catch (storageErr) {
+                console.warn("LocalStorage quota exceeded, running from RAM only:", storageErr);
+            }
 
             // (Tùy chọn) Bắn ra sự kiện nếu cần Reload nhẹ UI
             window.dispatchEvent(new CustomEvent('dashboardDataRefreshed', { detail: { month: monthId, year: yearId } }));
