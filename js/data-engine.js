@@ -12,7 +12,7 @@ async function loadSpreadsheetData(monthId, yearId) {
     if (DATA_BY_MONTH[cacheKey] && DATA_BY_MONTH[cacheKey].isFetched) return true;
 
     // 2. Kiểm tra LocalStorage Cache (Nhanh như chớp)
-    const localStoreStr = localStorage.getItem(`TonyTit_Data_${cacheKey}`);
+    const localStoreStr = localStorage.getItem(`Dashboard_Data_${cacheKey}`);
     if (localStoreStr) {
         try {
             DATA_BY_MONTH[cacheKey] = JSON.parse(localStoreStr);
@@ -44,7 +44,7 @@ async function fetchAndUpdateInBackground(monthId, yearId, cacheKey) {
             };
             // Cất vào tủ lạnh (LocalStorage) — tách try/catch riêng để quota error không ảnh hưởng return value
             try {
-                localStorage.setItem(`TonyTit_Data_${cacheKey}`, JSON.stringify(DATA_BY_MONTH[cacheKey]));
+                localStorage.setItem(`Dashboard_Data_${cacheKey}`, JSON.stringify(DATA_BY_MONTH[cacheKey]));
             } catch (storageErr) {
                 console.warn("LocalStorage quota exceeded, running from RAM only:", storageErr);
             }
