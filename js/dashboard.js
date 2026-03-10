@@ -152,7 +152,7 @@ async function fetchAISummary(month, year) {
     const question = `Phân tích tổng quan kết quả kinh doanh tháng ${month}/${year}: doanh thu, lượng khách, TBB, CIR từng cơ sở. Đưa ra nhận định và đề xuất chiến lược ngắn gọn.`;
 
     try {
-        const response = await fetch(`${window.APPS_SCRIPT_URL}?action=chat&q=${encodeURIComponent(question)}&month=${month}&monthFrom=${month}&year=${year}&token=${window.SECRET_AUTH_TOKEN}`, {
+        const response = await fetch(`${window.APPS_SCRIPT_URL}?action=chat&q=${encodeURIComponent(question)}&month=${month}&monthFrom=${month}&year=${year}`, {
             method: 'GET',
             redirect: 'follow'
         });
