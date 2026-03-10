@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tonytit-dashboard-v2';
+const CACHE_NAME = 'tonytit-dashboard-v3';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -20,10 +20,15 @@ self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
-                return cache.addAll(ASSETS_TO_CACHE);
+                // Cache từng file riêng lẻ: 1 file lỗi không làm hỏng cả batch
+                return Promise.allSettled(
+                    ASSETS_TO_CACHE.map(url =>
+                        cache.add(url).catch(err => console.warn(`[SW] Không cache được ${url}:`, err))
+                    )
+                );
             })
+            .then(() => self.skipWaiting()) // skipWaiting SAU KHI cache xong, không phải trước
     );
-    self.skipWaiting();
 });
 
 // Activate Event - Clean Up Old Caches
@@ -56,11 +61,13 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
         fetch(event.request)
             .then((response) => {
-                // Cập nhật ngầm lại cache cho lần sau nếu tải thành công
-                const resClone = response.clone();
-                caches.open(CACHE_NAME).then((cache) => {
-                    cache.put(event.request, resClone);
-                });
+                // Chỉ cache khi response THÀNH CÔNG (tránh cache trang lỗi 404/500 vĩnh viễn)
+                if (response.ok) {
+                    const resClone = response.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(event.request, resClone);
+                    });
+                }
                 return response;
             })
             .catch(() => {
