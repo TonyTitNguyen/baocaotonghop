@@ -166,12 +166,20 @@ async function handleUserSubmit(forcedText = null) {
     const memoryKey = `${text}_${currentMonth}_${currentYear}`;
 
     // 1. KIỂM TRA TRÍ NHỚ TRƯỚC TIÊN
-    if (aiMemoryCache[memoryKey]) {
+    if (typeof aiMemoryCache !== 'undefined' && aiMemoryCache[memoryKey]) {
         // Nếu đã từng hỏi câu này rồi -> Lấy đáp án từ sổ tay ra dùng luôn, KHÔNG GỌI GEMINI NỮA!
+        const cachedAnswer = aiMemoryCache[memoryKey];
+
         renderStructuredResponse({
             type: 'text',
-            text: aiMemoryCache[memoryKey]
+            text: cachedAnswer
         });
+
+        // 👉 LƯU LỊCH SỬ CHAT VÀO GOOGLE SHEET (Dữ liệu từ Cache)
+        if (typeof logInteractionToSheet === 'function') {
+            logInteractionToSheet(text, cachedAnswer);
+        }
+
         return; // Dừng hàm tại đây
     }
 
@@ -188,15 +196,22 @@ async function handleUserSubmit(forcedText = null) {
 
         const aiText = await response.text();
 
-        loadingDiv.remove();
+        if (loadingDiv) loadingDiv.remove();
 
         // LƯU ĐÁP ÁN MỚI VÀO SỔ TAY ĐỂ DÙNG CHO LẦN SAU
-        aiMemoryCache[memoryKey] = aiText;
+        if (typeof aiMemoryCache !== 'undefined') {
+            aiMemoryCache[memoryKey] = aiText;
+        }
 
         renderStructuredResponse({
             type: 'text',
             text: aiText
         });
+
+        // 👉 LƯU LỊCH SỬ CHAT VÀO GOOGLE SHEET (Dữ liệu mới)
+        if (typeof logInteractionToSheet === 'function') {
+            logInteractionToSheet(text, aiText);
+        }
 
     } catch (e) {
         console.error(e);
