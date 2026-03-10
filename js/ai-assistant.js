@@ -175,7 +175,9 @@ async function handleUserSubmit(forcedText = null) {
 
         if (!response.ok) throw new Error("Mạng hoặc máy chủ gặp sự cố");
 
-        const aiText = await response.text();
+        // SỬA: Nhận dữ liệu dưới dạng JSON thay vì Text
+        const aiData = await response.json();
+        const aiText = aiData.text;
 
         if (loadingDiv) loadingDiv.remove();
 
@@ -186,11 +188,10 @@ async function handleUserSubmit(forcedText = null) {
 
         renderStructuredResponse({ type: 'text', text: aiText });
 
-        // LƯU LỊCH SỬ CHAT VÀO GOOGLE SHEET (Chỉ dữ liệu mới)
-        if (typeof logInteractionToSheet === 'function') {
+        // 👉 SỬA LẠI: Chỉ lưu vào Sheet nếu backend xác nhận đây là kết quả mới hỏi Gemini
+        if (typeof logInteractionToSheet === 'function' && aiData.isCached === false) {
             logInteractionToSheet(text, aiText);
         }
-
     } catch (e) {
         console.error(e);
         if (loadingDiv) loadingDiv.remove();
