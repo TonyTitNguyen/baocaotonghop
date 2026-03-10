@@ -24,8 +24,8 @@
 </head>
 
 <body>
-    <h2>🔧 Vercel Proxy API Tester</h2>
-    <p style="color:#666">Kiểm tra kết nối từ Frontend → Vercel Proxy → Google Apps Script</p>
+    <h2>🔧 API Tester</h2>
+    <p style="color:#666" id="envLabel"></p>
 
     <div class="controls">
         <select id="monthInput">
@@ -46,7 +46,16 @@
     <div id="output"></div>
 
     <script>
-        const PROXY_URL = "https://tonytit-dashboard-api.vercel.app/api";
+        // Tự động chọn API giống config.js: local dev → localhost:3001, production → Vercel
+        const _isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+        const PROXY_URL = _isLocal
+            ? 'http://localhost:3001/api'
+            : 'https://tonytit-dashboard-api.vercel.app/api';
+
+        // Hiển thị đang dùng môi trường nào
+        document.getElementById('envLabel').innerHTML = _isLocal
+            ? '🖥️ <b>Local Dev</b> → <code>node api/local-server.js</code> (port 3001) → Google Apps Script'
+            : '☁️ <b>Production</b> → Vercel Proxy → Google Apps Script';
 
         function setStatus(msg, type = 'info') {
             const el = document.getElementById('status');
