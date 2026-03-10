@@ -70,6 +70,12 @@ async function setMonth(month) {
     titleEl.innerHTML = `Đang tải T${month}... <i data-lucide="loader-2" class="w-4 h-4 inline animate-spin"></i>`;
     if (window.lucide) lucide.createIcons();
 
+    // 2. Logic cập nhật dữ liệu
+
+    // Bật hiệu ứng Skeleton Loading
+    const homeSection = document.getElementById('home');
+    if (homeSection) homeSection.classList.add('is-loading');
+
     // Gọi API từ data-engine.js
     const success = await loadSpreadsheetData(month, currentYear);
     const cacheKey = `${month}_${currentYear}`;
@@ -95,6 +101,8 @@ async function setMonth(month) {
     }
 
     if (!hasData) {
+        // Tắt skeleton dù không có data
+        if (homeSection) homeSection.classList.remove('is-loading');
         // Nếu không có data -> Ẩn các section và báo lỗi
         document.querySelectorAll('.section-to-hide').forEach(el => el.style.display = 'none');
         document.getElementById('consultant-content').innerHTML = `<p class="text-red-500 font-bold">Chưa có dữ liệu cho Tháng ${month}.</p>`;
@@ -116,6 +124,10 @@ async function setMonth(month) {
 
         // Cập nhật Lệnh Đề Xuất tĩnh theo tháng
         if (typeof updateStaticSuggestions === 'function') updateStaticSuggestions(month);
+
+        // --- PRELOAD DỮ LIỆU ---
+        // Tải trước dữ liệu tháng trước & tháng sau để lần ấn tiếp theo không bị delay
+        if (typeof preloadAdjacentMonths === 'function') setTimeout(() => preloadAdjacentMonths(month, currentYear), 1500);
     }
 }
 
@@ -189,6 +201,12 @@ function updateDashboard() {
     renderMarketingFunnels(parseMarketingData(monthPack.marketingJson));
     renderBranchCards(unified.sort((a, b) => b.revenue - a.revenue));
     renderAdsTable(unified);
+
+    // Tắt hiệu ứng Skeleton Loading
+    setTimeout(() => {
+        const homeSection = document.getElementById('home');
+        if (homeSection) homeSection.classList.remove('is-loading');
+    }, 100); // Đợi DOM vẽ xong 1 chút mượt mà
 
     if (window.lucide) lucide.createIcons();
 
@@ -291,6 +309,14 @@ window.onload = () => {
     initMonthSelector();
     initRevealObserver();
     setMonth(currentMonth); // Mặc định load tháng hiện tại
+
+    // Gắn sự kiện lắng nghe khi dữ liệu background (stale-while-revalidate) tải xong
+    window.addEventListener('dashboardDataRefreshed', (e) => {
+        if (e.detail.month === currentMonth && e.detail.year === currentYear) {
+            console.log("Background data refreshed! Updating UI...");
+            updateDashboard();
+        }
+    });
 
     // 2. Gắn sự kiện cho nút mở Panel AI (Sparkles Icon)
     const aiBtn = document.getElementById('aiPanelToggleBtn');
