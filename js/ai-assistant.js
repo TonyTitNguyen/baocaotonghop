@@ -61,15 +61,40 @@ function formatMetric(val, metric) {
     return new Intl.NumberFormat('vi-VN').format(Math.round(val));
 }
 
-// [ĐÃ TỐI ƯU] Nâng cấp Markdown để xử lý list gạch đầu dòng từ Gemini
 function formatMarkdown(text) {
     if (!text) return "";
-    return text
-        .replace(/\*\*(.*?)\*\*/g, '<strong class="text-zen-dark">$1</strong>') // In đậm
-        .replace(/(?:^|\n)\* (.*?)(?=\n|$)/g, '<li class="ml-4 list-disc mt-1">$1</li>') // List dùng hoa thị
-        .replace(/(?:^|\n)- (.*?)(?=\n|$)/g, '<li class="ml-4 list-disc mt-1">$1</li>') // List dùng gạch ngang
-        .replace(/\*(.*?)\*/g, '<em>$1</em>') // In nghiêng
-        .replace(/\n/g, '<br>'); // Xuống dòng
+    const lines = text.split('\n');
+    const out = [];
+    let inList = false;
+
+    const applyInline = s => s
+        .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-zen-dark">$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+    for (const raw of lines) {
+        const line = raw.trim();
+        if (/^## /.test(line)) {
+            if (inList) { out.push('</ul>'); inList = false; }
+            out.push(`<p class="font-bold text-zen-dark uppercase text-xs tracking-wider mt-4 mb-1">${applyInline(line.slice(3))}</p>`);
+        } else if (/^### /.test(line)) {
+            if (inList) { out.push('</ul>'); inList = false; }
+            out.push(`<p class="font-bold text-zen-tea mt-3 mb-0.5 text-sm">${applyInline(line.slice(4))}</p>`);
+        } else if (/^[*-] /.test(line)) {
+            if (!inList) { out.push('<ul class="my-1 space-y-0.5 pl-1">'); inList = true; }
+            out.push(`<li class="list-disc ml-4 text-sm leading-relaxed">${applyInline(line.slice(2))}</li>`);
+        } else if (/^\d+\. /.test(line)) {
+            if (inList) { out.push('</ul>'); inList = false; }
+            out.push(`<p class="mt-1 text-sm leading-relaxed">${applyInline(line.replace(/^\d+\. /, ''))}</p>`);
+        } else if (line === '') {
+            if (inList) { out.push('</ul>'); inList = false; }
+            out.push('<div class="mt-2"></div>');
+        } else {
+            if (inList) { out.push('</ul>'); inList = false; }
+            out.push(`<p class="mt-1 text-sm leading-relaxed">${applyInline(line)}</p>`);
+        }
+    }
+    if (inList) out.push('</ul>');
+    return out.join('');
 }
 
 // 2. Render tin nhắn AI UI

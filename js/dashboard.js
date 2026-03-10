@@ -112,7 +112,9 @@ async function fetchAISummary(month, year) {
         if (!response.ok) throw new Error("Network error");
         const aiData = await response.json();
         const html = typeof formatMarkdown === 'function' ? formatMarkdown(aiData.text || '') : (aiData.text || '');
-        consultantBox.innerHTML = `<div class="text-sm text-zen-dark/80 leading-relaxed">${html}</div>`;
+        consultantBox.innerHTML = `
+            <h4 class="font-bold text-base text-zen-dark uppercase mb-3">TÓM TẮT PHÂN TÍCH THÁNG ${month}/${year}</h4>
+            <div class="text-zen-dark/80 space-y-1">${html}</div>`;
         if (window.lucide) lucide.createIcons();
 
         // Lưu cache
