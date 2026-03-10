@@ -1,13 +1,13 @@
-const CACHE_NAME = 'tonytit-dashboard-v1';
+const CACHE_NAME = 'tonytit-dashboard-v2';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
     './styles.css',
-    './js/config.js',
-    './js/data-engine.js',
-    './js/charts.js',
-    './js/dashboard.js',
-    './js/ai-assistant.js',
+    './js/config.min.js',
+    './js/data-engine.min.js',
+    './js/charts.min.js',
+    './js/dashboard.min.js',
+    './js/ai-assistant.min.js',
     './manifest.json',
     './libs/tailwindcss.js',
     './libs/chart.js',
@@ -45,8 +45,10 @@ self.addEventListener('activate', (event) => {
 
 // Fetch Event - Network First Strategy with Fallback to Cache
 self.addEventListener('fetch', (event) => {
-    // Bỏ qua các request lấy dữ liệu Spreadsheet Google (nó đã có cơ chế lưu cache riêng)
-    if (event.request.url.includes('script.google.com')) {
+    // Bỏ qua tất cả các request đến API ngoài (Vercel proxy, Google Script)
+    // Các API này có cơ chế cache riêng trong app, SW không nên can thiệp
+    const url = event.request.url;
+    if (url.includes('script.google.com') || url.includes('vercel.app') || url.includes('/api')) {
         return;
     }
 
