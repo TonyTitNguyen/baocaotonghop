@@ -168,19 +168,25 @@ async function fetchAISummary(month, year) {
         });
         if (!response.ok) throw new Error("Network error");
         const aiData = await response.json();
-        const html = typeof formatMarkdown === 'function' ? formatMarkdown(aiData.text || '') : (aiData.text || '');
+
+        if (!aiData.text || aiData.text.includes("Lỗi")) throw new Error(aiData.text || "Empty response");
+
+        // Lưu ngược vào RAM để lần sau trong cùng session không cần gọi lại
+        if (monthPack) monthPack.aiInsight = aiData.text;
+
+        const html = typeof formatMarkdown === 'function' ? formatMarkdown(aiData.text) : aiData.text;
         consultantBox.innerHTML = `
             <h4 class="font-bold text-base text-zen-dark uppercase mb-3">TÓM TẮT PHÂN TÍCH THÁNG ${month}/${year}</h4>
             <div class="text-zen-dark/80 space-y-1">${html}</div>`;
         if (window.lucide) lucide.createIcons();
 
-        // Lưu cache
-        if (typeof aiMemoryCache !== 'undefined' && aiData.text && !aiData.text.includes("Lỗi")) {
+        // Lưu aiMemoryCache
+        if (typeof aiMemoryCache !== 'undefined') {
             if (typeof setCacheEntry === 'function') setCacheEntry(summaryKey, consultantBox.innerHTML);
             else aiMemoryCache[summaryKey] = consultantBox.innerHTML;
         }
     } catch (e) {
-        consultantBox.innerHTML = `<p class="text-gray-400 italic text-sm">Không thể tải phân tích AI. Kiểm tra kết nối mạng.</p>`;
+        consultantBox.innerHTML = `<p class="text-gray-400 italic text-sm">Không thể tải phân tích AI: ${e.message}</p>`;
     }
 }
 
