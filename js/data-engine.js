@@ -40,6 +40,7 @@ async function fetchAndUpdateInBackground(monthId, yearId, cacheKey) {
                 rawJson: json.raw || [],
                 adsJson: json.ads || [],
                 marketingJson: json.marketing || [],
+                aiInsight: json.aiInsight || null,
                 isFetched: true
             };
             // Cất vào tủ lạnh (LocalStorage) — tách try/catch riêng để quota error không ảnh hưởng return value

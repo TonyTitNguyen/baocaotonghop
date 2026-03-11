@@ -35,7 +35,7 @@ function initMonthSelector() {
 }
 
 // Hàm lắng nghe sự kiện khi Dropdown thay đổi
-function handleDateChange() {
+window.handleDateChange = function() {
     const m = parseInt(document.getElementById('monthSelect').value);
     const y = parseInt(document.getElementById('yearSelect').value);
 
@@ -47,7 +47,7 @@ function handleDateChange() {
 }
 
 // 3. Hàm lọc theo thương hiệu (Dùng cho sidebar onclick)
-function filterBrand(brand) {
+window.filterBrand = function(brand) {
     currentBrand = brand;
     // Cập nhật trạng thái Active trên Sidebar
     document.querySelectorAll('.sidebar-item').forEach(el => {
@@ -81,23 +81,11 @@ async function setMonth(month) {
     const cacheKey = `${month}_${currentYear}`;
     const monthPack = DATA_BY_MONTH[cacheKey];
 
-    // Kiểm tra xem có dữ liệu thực tế không (phải đúng tháng)
+    try {
+        // Kiểm tra xem có dữ liệu thực tế không (tối thiểu phải có file Raw với đủ dòng Header)
     let hasData = false;
-    if (success && monthPack && monthPack.rawJson && monthPack.rawJson.length > 1) {
-        // Lấy thử một vài dòng đầu tiên (bỏ qua dòng 0 là header)
-        for (let i = 1; i < Math.min(5, monthPack.rawJson.length); i++) {
-            const cols = Object.values(monthPack.rawJson[i]);
-            if (cols.length >= 3) {
-                const dateStr = String(cols[2]).trim();
-                const parts = dateStr.split('/');
-                if (parts.length >= 2) {
-                    if (parseInt(parts[1]) === month) {
-                        hasData = true;
-                        break;
-                    }
-                }
-            }
-        }
+    if (success && monthPack && monthPack.rawJson && monthPack.rawJson.length > 0) {
+       hasData = true; // Chỉ cần file trả về thành công là cho hiển thị
     }
 
     if (!hasData) {
@@ -129,24 +117,46 @@ async function setMonth(month) {
         // Tải trước dữ liệu tháng trước & tháng sau để lần ấn tiếp theo không bị delay
         if (typeof preloadAdjacentMonths === 'function') setTimeout(() => preloadAdjacentMonths(month, currentYear), 1500);
     }
+    } catch (err) {
+        console.error("Lỗi Render Data:", err);
+        titleEl.innerHTML = "Lỗi tải dữ liệu";
+        document.getElementById('consultant-content').innerHTML = `<p class="text-red-500 font-bold">Lỗi JavaScript khi xử lý dữ liệu: ${err.message}</p>`;
+    }
 }
 
-// 4.5 Hàm kết nối AI ngầm - gọi Gemini thực tế
+// 4.5 Hàm kết nối AI ngầm - gọi Gemini thực tế hoặc lấy từ Cache/Sheet
 async function fetchAISummary(month, year) {
     const consultantBox = document.getElementById('consultant-content');
     if (!consultantBox) return;
 
     const summaryKey = `summary_${month}_${year}`;
+    const cacheKey = `${month}_${year}`;
+    const monthPack = DATA_BY_MONTH[cacheKey];
 
-    // Kiểm tra cache trước
+    // Kiểm tra JS RAM cache trước
     if (typeof aiMemoryCache !== 'undefined' && aiMemoryCache[summaryKey]) {
         consultantBox.innerHTML = aiMemoryCache[summaryKey];
         if (window.lucide) lucide.createIcons();
         return;
     }
 
-    // Hiện trạng thái loading
-    consultantBox.innerHTML = `<span class="text-xs text-gray-400 italic flex items-center gap-2"><i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i> Đang phân tích dữ liệu tháng ${month}/${year}...</span>`;
+    // 2. Kiểm tra xem Sheet đã gửi sẵn cục insight Text nào xuống cùng bộ API chưa
+    if (monthPack && monthPack.aiInsight) {
+        const html = typeof formatMarkdown === 'function' ? formatMarkdown(monthPack.aiInsight) : monthPack.aiInsight;
+        consultantBox.innerHTML = `
+            <h4 class="font-bold text-base text-zen-dark uppercase mb-3">TÓM TẮT PHÂN TÍCH THÁNG ${month}/${year}</h4>
+            <div class="text-zen-dark/80 space-y-1">${html}</div>`;
+        if (window.lucide) lucide.createIcons();
+        
+        if (typeof aiMemoryCache !== 'undefined') {
+            if (typeof setCacheEntry === 'function') setCacheEntry(summaryKey, consultantBox.innerHTML);
+            else aiMemoryCache[summaryKey] = consultantBox.innerHTML;
+        }
+        return;
+    }
+
+    // NẾU TẤT CẢ ĐỀU THIẾU -> Gọi thẳng /chat để Backend nhờ Gemini nghĩ 1 bản và tự lưu vào Sheet
+    consultantBox.innerHTML = `<span class="text-xs text-gray-400 italic flex items-center gap-2"><i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i> Đang yêu cầu AI phân tích dữ liệu mới...</span>`;
     if (window.lucide) lucide.createIcons();
 
     const question = `Phân tích tổng quan kết quả kinh doanh tháng ${month}/${year}: doanh thu, lượng khách, TBB, CIR từng cơ sở. Đưa ra nhận định và đề xuất chiến lược ngắn gọn.`;
@@ -342,15 +352,15 @@ window.onload = () => {
 };
 
 // 8. Các hàm điều khiển Panel AI
-function toggleAIPanel() {
+window.toggleAIPanel = function() {
     document.getElementById('aiCommandPanel').classList.toggle('ai-panel-open');
 }
-function closeAIPanel() {
+window.closeAIPanel = function() {
     document.getElementById('aiCommandPanel').classList.remove('ai-panel-open');
 }
 
 // 9. Cầu dao Music
-function toggleMusic() {
+window.toggleMusic = function() {
     const audio = document.getElementById('bgMusic');
     const icon = document.getElementById('musicIcon');
     if (!audio || !icon) return;
