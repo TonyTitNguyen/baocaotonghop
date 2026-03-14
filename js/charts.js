@@ -48,15 +48,39 @@ function renderMainChart(dailyData, month, year) {
         },
         options: {
             responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { position: 'top', align: 'end' } },
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            plugins: {
+                legend: { position: 'top', align: 'end' },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                if (context.dataset.label === 'Khách') {
+                                    label += new Intl.NumberFormat('vi-VN').format(context.parsed.y);
+                                } else {
+                                    label += new Intl.NumberFormat('vi-VN').format(context.parsed.y) + ' đ';
+                                }
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
             scales: {
                 x: { grid: { display: false } },
                 y: { type: 'linear', position: 'left', ticks: { callback: v => v / 1000000 + 'M' } },
                 y1: { type: 'linear', position: 'right', display: false, grid: { display: false } },
-                y2: { 
-                    type: 'linear', 
-                    position: 'right', 
-                    display: true, 
+                y2: {
+                    type: 'linear',
+                    position: 'right',
+                    display: true,
                     grid: { display: false },
                     ticks: { callback: v => v / 1000000 + 'M', color: '#D4AF37' }
                 }
@@ -80,12 +104,12 @@ function renderMarketingFunnels(data) {
     data.forEach((item, index) => {
         const div = document.createElement('div');
         div.className = "bg-white p-5 rounded-xl border border-zen-gray shadow-sm flex flex-col";
-        
+
         let rate1Val = item.rate1 || '0%';
         if (!rate1Val.includes('%')) rate1Val += '%';
         let rate2Val = item.rate2 || '0%';
         if (!rate2Val.includes('%')) rate2Val += '%';
-        
+
         div.innerHTML = `
             <h4 class="font-bold text-center mb-4">${item.name}</h4>
             <div class="h-40 mb-4"><canvas id="funnel-${index}"></canvas></div>
@@ -100,18 +124,18 @@ function renderMarketingFunnels(data) {
                 </div>
             </div>
         `;
-        
+
         container.appendChild(div);
         const ctx = document.getElementById(`funnel-${index}`).getContext('2d');
         funnelChartInstances[index] = new Chart(ctx, {
             type: 'bar',
             data: { labels: ['Lead', 'SĐT', 'Đến'], datasets: [{ data: [item.leads, item.phones, item.arrived], backgroundColor: ['#2A3B00', '#435E01', '#628502'] }] },
             plugins: [ChartDataLabels],
-            options: { 
-                indexAxis: 'y', 
-                responsive: true, 
-                maintainAspectRatio: false, 
-                plugins: { 
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
                     legend: { display: false },
                     datalabels: { display: false }
                 },
@@ -126,7 +150,7 @@ function renderMarketingFunnels(data) {
                             color: '#000',
                             font: { weight: 'bold', size: 14 },
                             autoSkip: false,
-                            callback: function(value, index) {
+                            callback: function (value, index) {
                                 const vals = [item.leads, item.phones, item.arrived];
                                 return new Intl.NumberFormat('vi-VN').format(vals[index]);
                             }
@@ -183,10 +207,10 @@ function renderBranchCards(data) {
                 </div>
                 
                 <div class="flex justify-between items-center">
-                    ${isProfitable ? 
-                        '<span class="text-green-600 font-bold text-xs bg-green-50 border border-green-200 px-2 py-1.5 rounded-md shadow-sm whitespace-nowrap">🌟 Lãi</span>' : 
-                        '<span class="text-red-600 font-bold text-xs bg-red-50 border border-red-200 px-2 py-1.5 rounded-md shadow-sm whitespace-nowrap">🔻 Chưa Lãi</span>'
-                    }
+                    ${isProfitable ?
+                '<span class="text-green-600 font-bold text-xs bg-green-50 border border-green-200 px-2 py-1.5 rounded-md shadow-sm whitespace-nowrap">🌟 Lãi</span>' :
+                '<span class="text-red-600 font-bold text-xs bg-red-50 border border-red-200 px-2 py-1.5 rounded-md shadow-sm whitespace-nowrap">🔻 Chưa Lãi</span>'
+            }
                     <span class="text-[10px] bg-gray-50 px-2 py-1 rounded border border-gray-200">Mốc: ${parseFloat((item.breakeven / 1000000).toFixed(1))}M</span>
                 </div>
             </div>
